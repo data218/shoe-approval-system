@@ -222,7 +222,7 @@ export default function Dashboard() {
           </div>
 
           {/* L2 Pending Card */}
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-100 p-6 rounded-2xl shadow-sm border border-blue-200 hover:shadow-md transition-shadow relative overflow-hidden group">
+          <div className="bg-gradient-to-br from-blue-50 to-brand-100 p-6 rounded-2xl shadow-sm border border-blue-200 hover:shadow-md transition-shadow relative overflow-hidden group">
             <div className="absolute -right-6 -top-6 w-24 h-24 bg-blue-200/50 rounded-full blur-2xl group-hover:bg-blue-300/50 transition-colors"></div>
             <div className="flex items-center justify-between relative z-10">
               <div>
@@ -264,13 +264,13 @@ export default function Dashboard() {
           </div>
 
           {/* Total Value Card */}
-          <div className="bg-gradient-to-tr from-indigo-900 to-slate-900 p-6 rounded-2xl shadow-lg border border-slate-800 text-white hover:shadow-xl transition-shadow relative overflow-hidden group">
+          <div className="bg-gradient-to-tr from-brand-900 to-slate-900 p-6 rounded-2xl shadow-lg border border-slate-800 text-white hover:shadow-xl transition-shadow relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform duration-700">
               <Activity className="w-24 h-24" />
             </div>
             <div className="relative z-10 flex flex-col justify-between h-full">
               <div>
-                <p className="text-sm font-bold text-indigo-300 uppercase tracking-wider">Total Approved Value</p>
+                <p className="text-sm font-bold text-brand-300 uppercase tracking-wider">Total Approved Value</p>
                 <h3 className="text-3xl font-black mt-2 text-emerald-400">₹{stats.totalValue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</h3>
               </div>
             </div>
@@ -282,7 +282,7 @@ export default function Dashboard() {
       <div className="bg-white rounded-2xl shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] border border-slate-100 overflow-hidden">
         <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
           <h2 className="text-lg font-bold text-slate-900">Recent Activity</h2>
-          <button onClick={() => navigate('/dashboard/inbox')} className="text-sm font-semibold text-indigo-600 hover:text-indigo-800">
+          <button onClick={() => navigate('/dashboard/inbox')} className="text-sm font-semibold text-brand-600 hover:text-brand-800">
             View All Inbox
           </button>
         </div>
@@ -299,7 +299,7 @@ export default function Dashboard() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-xs uppercase tracking-wider font-bold">
+                <tr className="bg-gradient-to-r from-brand-600 to-purple-600 text-white text-xs uppercase tracking-wider font-bold">
                   <th className="px-6 py-4 rounded-tl-lg">Date</th>
                   <th className="px-6 py-4">Request ID</th>
                   <th className="px-6 py-4">Type</th>
@@ -319,7 +319,7 @@ export default function Dashboard() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{req.display_id}</span>
+                        <span className="font-bold text-slate-900 group-hover:text-brand-600 transition-colors">{req.display_id}</span>
                         {getPriorityBadge(req.priority)}
                       </div>
                     </td>
@@ -356,7 +356,7 @@ export default function Dashboard() {
                     <td className="px-6 py-4 text-right">
                       <button
                         onClick={() => handleSelectRequest(req)}
-                        className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                        className="p-1.5 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors"
                         title="View Details"
                       >
                         <Eye className="w-4 h-4" />

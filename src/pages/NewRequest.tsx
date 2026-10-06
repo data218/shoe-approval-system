@@ -232,11 +232,11 @@ export default function NewRequest() {
             onClick={() => setRequestType('PURCHASE')}
             className={`p-8 flex flex-col items-center justify-center gap-4 rounded-2xl border transition-all duration-300 ${
               requestType === 'PURCHASE' 
-                ? 'bg-gradient-to-br from-indigo-500 to-purple-600 text-white border-transparent shadow-lg shadow-indigo-200 scale-[1.02]' 
-                : 'bg-white border-slate-200 text-slate-600 hover:border-indigo-300 hover:bg-indigo-50/50'
+                ? 'bg-gradient-to-br from-brand-500 to-purple-600 text-white border-transparent shadow-lg shadow-brand-200 scale-[1.02]' 
+                : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300 hover:bg-brand-50/50'
             }`}
           >
-            <div className={`p-4 rounded-full transition-colors ${requestType === 'PURCHASE' ? 'bg-white/20' : 'bg-indigo-100 text-indigo-600'}`}>
+            <div className={`p-4 rounded-full transition-colors ${requestType === 'PURCHASE' ? 'bg-white/20' : 'bg-brand-100 text-brand-600'}`}>
               <Package className="w-8 h-8" />
             </div>
             <span className="text-lg font-bold">Goods Purchase</span>
@@ -275,7 +275,7 @@ export default function NewRequest() {
               <select
                 value={priority}
                 onChange={(e) => setPriority(e.target.value as any)}
-                className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
               >
                 <option value="NORMAL">Normal</option>
                 <option value="URGENT">Urgent</option>
@@ -325,7 +325,7 @@ export default function NewRequest() {
                     required
                     value={supplier}
                     onChange={(e) => setSupplier(e.target.value)}
-                    className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                    className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
                   />
                 </div>
                 <div>
@@ -335,7 +335,7 @@ export default function NewRequest() {
                     required
                     value={itemCategory}
                     onChange={(e) => setItemCategory(e.target.value)}
-                    className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                    className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
                     placeholder="e.g. Office Supplies, Electronics"
                   />
                 </div>
@@ -352,7 +352,7 @@ export default function NewRequest() {
                         setItemCategory(selectedItem.category);
                       }
                     }}
-                    className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white"
+                    className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none bg-white"
                   >
                     <option value="" disabled>Select an item...</option>
                     {masterItems.map(item => (
@@ -367,7 +367,7 @@ export default function NewRequest() {
                     required
                     value={purSku}
                     onChange={(e) => setPurSku(e.target.value)}
-                    className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                    className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
                   />
                 </div>
                 <div>
@@ -378,7 +378,7 @@ export default function NewRequest() {
                     required
                     value={quantity}
                     onChange={(e) => setQuantity(e.target.value === '' ? '' : parseInt(e.target.value))}
-                    className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                    className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
                   />
                 </div>
                 <div>
@@ -390,7 +390,7 @@ export default function NewRequest() {
                     required
                     value={unitPrice}
                     onChange={(e) => setUnitPrice(e.target.value === '' ? '' : parseFloat(e.target.value))}
-                    className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                    className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
                   />
                 </div>
               </div>
@@ -532,7 +532,7 @@ export default function NewRequest() {
               disabled={loading}
               className={`flex items-center gap-2 px-8 py-3 rounded-xl font-semibold text-white shadow-sm transition-all
                 ${loading ? 'opacity-70 cursor-not-allowed' : 'hover:-translate-y-0.5'}
-                ${requestType === 'PURCHASE' ? 'bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500' : 'bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500'}
+                ${requestType === 'PURCHASE' ? 'bg-brand-600 hover:bg-brand-700 focus:ring-brand-500' : 'bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500'}
               `}
             >
               {loading ? 'Submitting...' : 'Submit Request'}

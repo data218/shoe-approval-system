@@ -169,7 +169,7 @@ export default function Users() {
               placeholder="Search users..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-sm"
+              className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none text-sm"
             />
           </div>
           <div className="flex items-center gap-2 text-sm text-slate-500 font-medium">
@@ -214,7 +214,7 @@ export default function Users() {
                           value={u.role || 'REQUESTER'}
                           onChange={(e) => handleRoleChange(u.id, e.target.value)}
                           disabled={updateLoading === u.id}
-                          className="pl-3 pr-8 py-1.5 border border-slate-300 rounded-lg text-sm bg-white hover:bg-slate-50 focus:ring-2 focus:ring-indigo-500 outline-none disabled:opacity-50 appearance-none font-medium text-slate-700"
+                          className="pl-3 pr-8 py-1.5 border border-slate-300 rounded-lg text-sm bg-white hover:bg-slate-50 focus:ring-2 focus:ring-brand-500 outline-none disabled:opacity-50 appearance-none font-medium text-slate-700"
                         >
                           <option value="REQUESTER">Requester</option>
                           <option value="L1_APPROVER">Level 1 Approver</option>
@@ -222,7 +222,7 @@ export default function Users() {
                           <option value="ADMIN">Admin</option>
                         </select>
                         {updateLoading === u.id && (
-                          <RefreshCw className="w-4 h-4 text-indigo-500 animate-spin absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+                          <RefreshCw className="w-4 h-4 text-brand-500 animate-spin absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
                         )}
                       </div>
                     )}
@@ -232,7 +232,7 @@ export default function Users() {
                       <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
                           onClick={() => openEditModal(u)}
-                          className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                          className="p-1.5 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors"
                           title="Edit User"
                         >
                           <Pencil className="w-4 h-4" />
@@ -291,7 +291,7 @@ export default function Users() {
                   type="text"
                   value={editForm.full_name}
                   onChange={e => setEditForm({...editForm, full_name: e.target.value})}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none"
                 />
               </div>
               <div>
@@ -300,7 +300,7 @@ export default function Users() {
                   type="text"
                   value={editForm.employee_code}
                   onChange={e => setEditForm({...editForm, employee_code: e.target.value})}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none"
                 />
               </div>
               <div>
@@ -309,7 +309,7 @@ export default function Users() {
                   type="text"
                   value={editForm.department}
                   onChange={e => setEditForm({...editForm, department: e.target.value})}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none"
                 />
               </div>
             </div>
@@ -324,7 +324,7 @@ export default function Users() {
               <button
                 onClick={saveEdit}
                 disabled={editLoading}
-                className="px-4 py-2 bg-indigo-600 text-white font-medium hover:bg-indigo-700 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
+                className="px-4 py-2 bg-brand-600 text-white font-medium hover:bg-brand-700 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
               >
                 {editLoading && <RefreshCw className="w-4 h-4 animate-spin" />}
                 Save Changes

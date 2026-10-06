@@ -160,7 +160,7 @@ export default function Items() {
           </button>
           
           <label className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors shadow-sm cursor-pointer ${
-            isUploading ? 'bg-indigo-400 text-white cursor-not-allowed' : 'bg-indigo-100 hover:bg-indigo-200 text-indigo-700'
+            isUploading ? 'bg-brand-400 text-white cursor-not-allowed' : 'bg-brand-100 hover:bg-brand-200 text-brand-700'
           }`}>
             {isUploading ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Upload className="w-5 h-5" />}
             {isUploading ? 'Uploading...' : 'Bulk Upload'}
@@ -175,7 +175,7 @@ export default function Items() {
 
           <button 
             onClick={() => setIsAdding(!isAdding)}
-            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-sm"
+            className="flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-sm"
           >
             {isAdding ? <PackageSearch className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
             {isAdding ? 'View Items' : 'Add New Item'}
@@ -201,7 +201,7 @@ export default function Items() {
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none"
+                className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 outline-none"
                 placeholder="e.g. Nike Air Max 90"
               />
             </div>
@@ -212,7 +212,7 @@ export default function Items() {
                 required
                 value={sku}
                 onChange={(e) => setSku(e.target.value)}
-                className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none"
+                className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 outline-none"
                 placeholder="e.g. NK-AM90-BLK"
               />
             </div>
@@ -223,7 +223,7 @@ export default function Items() {
                 required
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none"
+                className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 outline-none"
                 placeholder="e.g. Footwear"
               />
             </div>
@@ -232,7 +232,7 @@ export default function Items() {
               type="submit"
               disabled={submitLoading}
               className={`flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl font-semibold text-white shadow-sm transition-all
-                ${submitLoading ? 'opacity-70 cursor-not-allowed bg-indigo-600' : 'bg-indigo-600 hover:bg-indigo-700'}
+                ${submitLoading ? 'opacity-70 cursor-not-allowed bg-brand-600' : 'bg-brand-600 hover:bg-brand-700'}
               `}
             >
               {submitLoading ? 'Saving...' : 'Save Item'}

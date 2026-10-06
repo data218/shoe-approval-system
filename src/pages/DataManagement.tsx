@@ -73,7 +73,7 @@ export default function DataManagement() {
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
-            <Database className="w-8 h-8 text-indigo-600" />
+            <Database className="w-8 h-8 text-brand-600" />
             Data Management
           </h1>
           <p className="text-slate-500 mt-2 font-medium">

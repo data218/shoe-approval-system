@@ -13,6 +13,7 @@ import {
   Database
 } from 'lucide-react';
 import { useState } from 'react';
+import ThemeSwitcher from '../components/ThemeSwitcher';
 
 export default function MainLayout() {
   const { profile, signOut } = useAuth();
@@ -37,22 +38,22 @@ export default function MainLayout() {
       <aside className="hidden md:flex flex-col w-64 bg-white border-r border-slate-200 shadow-sm z-20">
         <div className="h-16 flex items-center justify-center px-6 border-b border-slate-100 gap-2">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center shadow-md shadow-indigo-200">
+            <div className="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center shadow-md shadow-brand-200">
               <ShieldCheck className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold text-slate-900 tracking-tight">O <span className="text-indigo-600">Shoes</span></span>
+            <span className="text-xl font-bold text-slate-900 tracking-tight">O <span className="text-brand-600">Shoes</span></span>
           </div>
         </div>
 
         {profile && (
           <div className="p-4 border-b border-slate-100 bg-slate-50/50">
             <div className="flex items-center gap-3 px-3 py-2">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 border-2 border-white shadow-sm flex items-center justify-center text-sm font-bold text-white">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-brand-500 to-purple-500 border-2 border-white shadow-sm flex items-center justify-center text-sm font-bold text-white">
                 {profile?.full_name?.charAt(0) || 'U'}
               </div>
               <div className="flex-1 overflow-hidden">
                 <p className="text-sm font-bold text-slate-900 truncate">{profile?.full_name}</p>
-                <p className="text-xs text-indigo-600 truncate capitalize font-bold">{profile?.role?.replace('_', ' ')}</p>
+                <p className="text-xs text-brand-600 truncate capitalize font-bold">{profile?.role?.replace('_', ' ')}</p>
               </div>
             </div>
           </div>
@@ -67,11 +68,11 @@ export default function MainLayout() {
                 to={item.href}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium transition-colors ${
                   isActive 
-                    ? 'bg-indigo-50 text-indigo-700' 
+                    ? 'bg-brand-50 text-brand-700' 
                     : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                 }`}
               >
-                <item.icon className={`w-5 h-5 ${isActive ? 'text-indigo-600' : 'text-slate-400'}`} />
+                <item.icon className={`w-5 h-5 ${isActive ? 'text-brand-600' : 'text-slate-400'}`} />
                 {item.name}
               </Link>
             );
@@ -97,7 +98,8 @@ export default function MainLayout() {
           <div className="flex-1 hidden md:flex" /> {/* Spacer */}
 
           <div className="flex items-center gap-4 ml-auto">
-            <button className="p-2 text-slate-400 hover:text-indigo-600 relative rounded-full hover:bg-slate-100 transition-colors">
+            <ThemeSwitcher />
+            <button className="p-2 text-slate-400 hover:text-brand-600 relative rounded-full hover:bg-slate-100 transition-colors">
               <Bell className="w-5 h-5" />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white"></span>
             </button>
@@ -118,20 +120,20 @@ export default function MainLayout() {
             <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)} />
             <aside className="fixed top-0 left-0 bottom-0 w-64 bg-white border-r border-slate-200 z-50 flex flex-col shadow-xl">
               <div className="h-16 flex items-center justify-center border-b border-slate-100 gap-2">
-                <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center shadow-md shadow-indigo-200">
+                <div className="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center shadow-md shadow-brand-200">
                   <ShieldCheck className="w-5 h-5 text-white" />
                 </div>
-                <span className="text-xl font-bold text-slate-900 tracking-tight">O <span className="text-indigo-600">Shoes</span></span>
+                <span className="text-xl font-bold text-slate-900 tracking-tight">O <span className="text-brand-600">Shoes</span></span>
               </div>
               {profile && (
                 <div className="p-4 border-b border-slate-100 bg-slate-50/50">
                   <div className="flex items-center gap-3 px-3 py-2">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 border-2 border-white shadow-sm flex items-center justify-center text-sm font-bold text-white">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-brand-500 to-purple-500 border-2 border-white shadow-sm flex items-center justify-center text-sm font-bold text-white">
                       {profile?.full_name?.charAt(0) || 'U'}
                     </div>
                     <div className="flex-1 overflow-hidden">
                       <p className="text-sm font-bold text-slate-900 truncate">{profile?.full_name}</p>
-                      <p className="text-xs text-indigo-600 truncate capitalize font-bold">{profile?.role?.replace('_', ' ')}</p>
+                      <p className="text-xs text-brand-600 truncate capitalize font-bold">{profile?.role?.replace('_', ' ')}</p>
                     </div>
                   </div>
                 </div>
@@ -145,10 +147,10 @@ export default function MainLayout() {
                       to={item.href}
                       onClick={() => setIsMobileMenuOpen(false)}
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium ${
-                        isActive ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                        isActive ? 'bg-brand-50 text-brand-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                       }`}
                     >
-                      <item.icon className={`w-5 h-5 ${isActive ? 'text-indigo-600' : 'text-slate-400'}`} />
+                      <item.icon className={`w-5 h-5 ${isActive ? 'text-brand-600' : 'text-slate-400'}`} />
                       {item.name}
                     </Link>
                   );

@@ -139,9 +139,9 @@ export default function Login() {
                   className="absolute inset-y-0 right-0 pr-3 flex items-center"
                 >
                   {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-indigo-500" />
+                    <EyeOff className="h-5 w-5 text-brand-500" />
                   ) : (
-                    <Eye className="h-5 w-5 text-slate-400 hover:text-indigo-500 transition-colors" />
+                    <Eye className="h-5 w-5 text-slate-400 hover:text-brand-500 transition-colors" />
                   )}
                 </button>
               </div>

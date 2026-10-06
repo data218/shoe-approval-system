@@ -32,7 +32,7 @@ export function Pagination({
             onItemsPerPageChange(Number(e.target.value));
             onPageChange(1); // Reset to first page
           }}
-          className="text-sm border-slate-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 py-1 pl-2 pr-6 cursor-pointer"
+          className="text-sm border-slate-300 rounded-md focus:ring-brand-500 focus:border-brand-500 py-1 pl-2 pr-6 cursor-pointer"
         >
           {itemsPerPageOptions.map(option => (
             <option key={option} value={option}>{option}</option>

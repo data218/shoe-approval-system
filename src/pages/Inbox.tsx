@@ -237,7 +237,7 @@ export default function Inbox() {
         </div>
         <button 
           onClick={fetchRequests}
-          className="p-2 text-slate-400 hover:text-indigo-600 bg-white rounded-lg border border-slate-200 shadow-sm transition-colors"
+          className="p-2 text-slate-400 hover:text-brand-600 bg-white rounded-lg border border-slate-200 shadow-sm transition-colors"
           title="Refresh Inbox"
         >
           <RefreshCw className="w-5 h-5" />
@@ -256,7 +256,7 @@ export default function Inbox() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-xs uppercase tracking-wider font-bold">
+                <tr className="bg-gradient-to-r from-brand-600 to-purple-600 text-white text-xs uppercase tracking-wider font-bold">
                   <th className="px-6 py-4 rounded-tl-lg">Date</th>
                   <th className="px-6 py-4">Request ID</th>
                   <th className="px-6 py-4">Type</th>
@@ -303,7 +303,7 @@ export default function Inbox() {
                     <td className="px-6 py-4 text-right">
                       <button
                         onClick={() => handleSelectRequest(req)}
-                        className="px-4 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2 ml-auto"
+                        className="px-4 py-2 bg-brand-50 text-brand-700 hover:bg-brand-600 hover:text-white rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2 ml-auto"
                       >
                         Review <ChevronRight className="w-4 h-4" />
                       </button>
@@ -490,7 +490,7 @@ export default function Inbox() {
                     value={remarks}
                     onChange={(e) => setRemarks(e.target.value)}
                     placeholder="Enter remarks (Mandatory for Reject/Send Back)..."
-                    className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none text-sm resize-none"
+                    className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 outline-none text-sm resize-none"
                   />
                 </div>
                 <div className="flex gap-3">
