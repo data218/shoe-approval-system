@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import MainLayout from './layouts/MainLayout';
 import Login from './pages/Login';
@@ -12,8 +12,7 @@ import Items from './pages/Items';
 import Users from './pages/Users';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { session, profile, loading } = useAuth();
-  const location = useLocation();
+  const { session, loading } = useAuth();
   
   if (loading) {
     return <div className="flex h-screen items-center justify-center bg-slate-50">Loading...</div>;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { 
@@ -8,7 +8,6 @@ import {
   Clock, 
   Package, 
   Tag,
-  ArrowLeft,
   MessageSquare,
   ShieldCheck,
   ChevronRight,
@@ -105,7 +104,7 @@ export default function Inbox() {
         .eq('request_id', req.id)
         .single();
         
-      const { data: auditData, error: auditError } = await supabase
+      const { data: auditData } = await supabase
         .from('audit_logs')
         .select('*')
         .eq('request_id', req.id)
