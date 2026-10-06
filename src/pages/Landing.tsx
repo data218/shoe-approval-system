@@ -1,105 +1,106 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Menu, Share2, Globe, MessageCircle } from 'lucide-react';
+import { ArrowRight, ShieldCheck, FileText, CheckCircle, Zap } from 'lucide-react';
 
 export default function Landing() {
   return (
-    <div className="min-h-screen bg-black flex flex-col font-sans relative overflow-hidden">
+    <div className="min-h-screen bg-[#0B0F19] text-slate-200 selection:bg-indigo-500/30 font-sans">
       {/* Navigation */}
-      <nav className="absolute top-0 w-full z-50 flex items-center justify-between px-8 py-6 bg-black/40 backdrop-blur-sm border-b border-white/10">
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 bg-white rounded-sm flex items-center justify-center">
-            <div className="w-3 h-3 bg-black rounded-sm" />
+      <nav className="fixed top-0 w-full z-50 border-b border-white/5 bg-[#0B0F19]/80 backdrop-blur-md">
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center">
+              <ShieldCheck className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-xl font-semibold text-white tracking-tight">Showroom<span className="text-indigo-400">Flow</span></span>
           </div>
-          <span className="text-white font-bold tracking-widest text-lg">LOGO WEB</span>
-        </div>
-
-        <div className="hidden md:flex items-center gap-8 text-sm font-semibold tracking-wider">
-          <Link to="/" className="text-[#E59866] bg-[#E59866]/10 px-4 py-1.5 rounded-full">HOME</Link>
-          <Link to="/" className="text-white hover:text-[#E59866] transition-colors">SHOP</Link>
-          <Link to="/" className="text-white hover:text-[#E59866] transition-colors">ABOUT</Link>
-          <Link to="/login" className="text-white hover:text-[#E59866] transition-colors">SIGN UP</Link>
-        </div>
-
-        <div className="flex items-center gap-6">
-          <button className="text-white hover:text-[#E59866] transition-colors">
-            <Search className="w-5 h-5" />
-          </button>
-          <button className="text-white hover:text-[#E59866] transition-colors md:hidden">
-            <Menu className="w-6 h-6" />
-          </button>
+          <div className="flex items-center gap-4">
+            <Link to="/login" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">
+              Sign In
+            </Link>
+            <Link 
+              to="/login" 
+              className="text-sm font-medium bg-white text-black px-4 py-2 rounded-full hover:bg-slate-200 transition-colors flex items-center gap-2"
+            >
+              Access Portal
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
         </div>
       </nav>
 
-      {/* Hero Content */}
-      <main className="flex-1 relative flex items-center">
-        {/* Background Image - Using a high quality Unsplash shoe image */}
-        <div className="absolute inset-0 z-0">
-          <img 
-            src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=2070&auto=format&fit=crop"
-            alt="Running shoes" 
-            className="w-full h-full object-cover object-center"
-          />
-          {/* Subtle gradient overlay to ensure text readability */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
-        </div>
+      {/* Hero Section */}
+      <main className="pt-32 pb-20 px-6 relative overflow-hidden">
+        {/* Background Gradients */}
+        <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-indigo-600/20 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[120px]" />
 
-        <div className="relative z-10 w-full max-w-7xl mx-auto px-8 flex justify-between items-center">
-          
-          {/* Left Promotional Card */}
-          <div className="bg-black/95 p-12 max-w-md border border-white/10 shadow-2xl backdrop-blur-md">
-            <h2 className="text-[#E59866] text-6xl font-serif mb-2 tracking-tight">SALE</h2>
-            <h3 className="text-white text-3xl font-serif mb-6 tracking-wide uppercase">SUPER OFFER</h3>
-            
-            <p className="text-[#E59866]/80 text-sm leading-relaxed mb-10 font-medium max-w-[280px]">
-              Discover the latest trends in athletic footwear. 
-              Elevate your performance with our premium selection of running shoes.
+        <div className="max-w-7xl mx-auto relative z-10">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-medium uppercase tracking-wider mb-6">
+              <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
+              Internal Approval System
+            </div>
+            <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight leading-tight">
+              Streamline your <br/>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">
+                showroom operations
+              </span>
+            </h1>
+            <p className="text-lg md:text-xl text-slate-400 mb-10 leading-relaxed">
+              The enterprise-grade portal for managing Goods Purchase Requests and Customer Discounts with intelligent multi-level workflows.
             </p>
-
-            <Link 
-              to="/login"
-              className="inline-flex items-center justify-center px-8 py-3 bg-[#E59866] text-black font-bold text-sm tracking-wider rounded-full hover:bg-[#d68a59] transition-transform hover:scale-105"
-            >
-              SHOP NOW
-            </Link>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Link 
+                to="/login" 
+                className="w-full sm:w-auto px-8 py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full font-semibold transition-all transform hover:scale-105 flex items-center justify-center gap-2 shadow-[0_0_40px_-10px_rgba(79,70,229,0.5)]"
+              >
+                Employee Login
+                <ArrowRight className="w-5 h-5" />
+              </Link>
+            </div>
           </div>
 
-          {/* Social Icons (Right side) */}
-          <div className="hidden lg:flex flex-col gap-4">
-            <a href="#" className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white hover:bg-[#E59866] hover:text-black transition-all">
-              <Share2 className="w-4 h-4" />
-            </a>
-            <a href="#" className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white hover:bg-[#E59866] hover:text-black transition-all">
-              <Globe className="w-4 h-4" />
-            </a>
-            <a href="#" className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white hover:bg-[#E59866] hover:text-black transition-all">
-              <MessageCircle className="w-4 h-4" />
-            </a>
-          </div>
-        </div>
+          {/* Features Grid */}
+          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            <div className="p-6 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/[0.07] transition-colors">
+              <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center mb-4 border border-blue-500/30">
+                <CheckCircle className="w-6 h-6 text-blue-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-2">Multi-Level Approvals</h3>
+              <p className="text-slate-400 text-sm leading-relaxed">
+                Automated routing from Employees to Managers (Narendra) and Final Approvers (Sanjeev) with full accountability.
+              </p>
+            </div>
 
-        {/* Floating Label (recreating the "NEW SHOES" pointer from the image) */}
-        <div className="absolute top-[60%] left-[55%] hidden md:flex items-center gap-4 z-20 group cursor-pointer">
-          <div className="relative w-12 h-12 rounded-full bg-[#E59866]/30 flex items-center justify-center animate-pulse">
-            <div className="w-6 h-6 bg-white rounded-full group-hover:scale-110 transition-transform" />
-          </div>
-          {/* Pointer line and text */}
-          <div className="flex items-center">
-            <div className="w-16 h-px bg-white/60 -ml-2" />
-            <div className="border border-white/60 bg-black/60 backdrop-blur-sm px-6 py-2 rounded-full text-white text-sm font-bold tracking-widest whitespace-nowrap">
-              NEW SHOES
+            <div className="p-6 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/[0.07] transition-colors">
+              <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center mb-4 border border-purple-500/30">
+                <Zap className="w-6 h-6 text-purple-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-2">Smart Validation</h3>
+              <p className="text-slate-400 text-sm leading-relaxed">
+                Automatic warnings for high-value purchases and excessive discount requests before they reach the manager's inbox.
+              </p>
+            </div>
+
+            <div className="p-6 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/[0.07] transition-colors">
+              <div className="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center mb-4 border border-emerald-500/30">
+                <FileText className="w-6 h-6 text-emerald-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-2">Complete Audit Trail</h3>
+              <p className="text-slate-400 text-sm leading-relaxed">
+                Track every state change, remark, send-back, and final decision in a secure, immutable history log.
+              </p>
             </div>
           </div>
         </div>
       </main>
 
-      {/* Bottom Carousel Dots */}
-      <div className="absolute bottom-8 w-full flex justify-center gap-3 z-20">
-        <div className="w-2 h-2 rounded-full bg-white cursor-pointer" />
-        <div className="w-2 h-2 rounded-full bg-[#E59866] cursor-pointer ring-4 ring-[#E59866]/30" />
-        <div className="w-2 h-2 rounded-full bg-white/50 cursor-pointer hover:bg-white transition-colors" />
-        <div className="w-2 h-2 rounded-full bg-white/50 cursor-pointer hover:bg-white transition-colors" />
-      </div>
+      {/* Footer */}
+      <footer className="border-t border-white/5 py-8 text-center mt-12">
+        <p className="text-slate-500 text-sm">
+          © {new Date().getFullYear()} Shoe Showroom Enterprise. All rights reserved.
+        </p>
+      </footer>
     </div>
   );
 }
