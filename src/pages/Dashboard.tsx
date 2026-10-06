@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { Activity, Clock, CheckCircle, XCircle, Package, Tag, ArrowRight, Eye, MessageSquare, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { Pagination } from '../components/Pagination';
 
 export default function Dashboard() {
   const { profile } = useAuth();
@@ -10,6 +11,9 @@ export default function Dashboard() {
   const [stats, setStats] = useState({ l1Pending: 0, l2Pending: 0, approvedToday: 0, rejected: 0, totalValue: 0 });
   const [recentRequests, setRecentRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   
   // Modal state
   const [selectedRequest, setSelectedRequest] = useState<any | null>(null);
@@ -20,7 +24,7 @@ export default function Dashboard() {
     if (profile) {
       fetchDashboardData();
     }
-  }, [profile]);
+  }, [profile, currentPage, itemsPerPage]);
 
   const fetchDashboardData = async () => {
     try {
@@ -35,9 +39,8 @@ export default function Dashboard() {
           audit_logs:shoe_audit_logs(remarks, action),
           purchase_details:shoe_purchase_details(item_name),
           discount_details:shoe_discount_details(product_name)
-        `)
-        .order('created_at', { ascending: false })
-        .limit(10);
+        `, { count: 'exact' })
+        .order('created_at', { ascending: false });
 
       // Apply role-based filtering for the dashboard views
       if (profile?.role === 'L1_APPROVER') {
@@ -49,8 +52,16 @@ export default function Dashboard() {
       }
       // ADMIN sees everything
 
-      const { data: reqs, error: reqError } = await query;
+      const from = (currentPage - 1) * itemsPerPage;
+      const to = from + itemsPerPage - 1;
+      query = query.range(from, to);
+
+      const { data: reqs, error: reqError, count } = await query;
       if (reqError) throw reqError;
+      
+      if (count !== null) {
+        setTotalItems(count);
+      }
 
       // Ensure audit_logs is sorted so we grab the latest remark
       const formattedReqs = (reqs || []).map(r => {
@@ -355,6 +366,21 @@ export default function Dashboard() {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+        
+        {!loading && recentRequests.length > 0 && (
+          <div className="border-t border-slate-100">
+            <Pagination
+              currentPage={currentPage}
+              totalItems={totalItems}
+              itemsPerPage={itemsPerPage}
+              onPageChange={setCurrentPage}
+              onItemsPerPageChange={(val) => {
+                setItemsPerPage(val);
+                setCurrentPage(1);
+              }}
+            />
           </div>
         )}
       </div>

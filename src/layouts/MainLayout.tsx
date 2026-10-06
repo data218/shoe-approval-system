@@ -9,7 +9,8 @@ import {
   Menu,
   Bell,
   Package,
-  Users as UsersIcon
+  Users as UsersIcon,
+  Database
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -27,6 +28,7 @@ export default function MainLayout() {
 
   if (profile?.role === 'ADMIN') {
     navigation.push({ name: 'User Management', href: '/dashboard/users', icon: UsersIcon });
+    navigation.push({ name: 'Data Management', href: '/dashboard/data', icon: Database });
   }
 
   return (

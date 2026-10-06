@@ -10,6 +10,7 @@ import Inbox from './pages/Inbox';
 import NewRequest from './pages/NewRequest';
 import Items from './pages/Items';
 import Users from './pages/Users';
+import DataManagement from './pages/DataManagement';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { session, loading } = useAuth();
@@ -54,6 +55,7 @@ function AppRoutes() {
         <Route path="new" element={<NewRequest />} />
         <Route path="items" element={<Items />} />
         <Route path="users" element={<Users />} />
+        <Route path="data" element={<DataManagement />} />
       </Route>
       
       <Route path="*" element={<Navigate to="/" replace />} />
