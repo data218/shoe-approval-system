@@ -31,10 +31,10 @@ export default function Dashboard() {
         .from('shoe_requests')
         .select(`
           *, 
-          requester:profiles!requester_id(full_name, department), 
-          audit_logs(remarks, action),
-          purchase_details(item_name),
-          discount_details(product_name)
+          requester:shoe_profiles!requester_id(full_name, department), 
+          audit_logs:shoe_audit_logs(remarks, action),
+          purchase_details:shoe_purchase_details(item_name),
+          discount_details:shoe_discount_details(product_name)
         `)
         .order('created_at', { ascending: false })
         .limit(10);

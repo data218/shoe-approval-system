@@ -49,9 +49,9 @@ export default function Inbox() {
         .from('shoe_requests')
         .select(`
           *,
-          requester:profiles!requester_id(full_name, employee_code, department),
-          purchase_details(item_name, total_amount),
-          discount_details(product_name, discount_amount)
+          requester:shoe_profiles!requester_id(full_name, employee_code, department),
+          purchase_details:shoe_purchase_details(item_name, total_amount),
+          discount_details:shoe_discount_details(product_name, discount_amount)
         `)
         .order('created_at', { ascending: false });
 
