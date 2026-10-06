@@ -126,7 +126,7 @@ export default function Dashboard() {
     
     try {
       setDetailsLoading(true);
-      const table = req.type === 'PURCHASE' ? 'purchase_details' : 'discount_details';
+      const table = req.type === 'PURCHASE' ? 'shoe_purchase_details' : 'shoe_discount_details';
       const { data, error: detailError } = await supabase
         .from(table)
         .select('*')
