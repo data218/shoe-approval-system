@@ -6,7 +6,7 @@ interface Profile {
   id: string;
   full_name: string;
   employee_code: string;
-  role: 'ADMIN' | 'REQUESTER' | 'NARENDRA' | 'SANJEEV';
+  role: 'ADMIN' | 'REQUESTER' | 'L1_APPROVER' | 'L2_APPROVER';
   department: string;
   showroom_location: string;
 }
@@ -26,6 +26,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -59,10 +60,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .eq('id', userId)
       .single();
     
-    if (data) {
-      setProfile(data as Profile);
-    } else {
+    if (error) {
       console.error('Error fetching profile:', error);
+      setAuthError(`Database Error: ${error.message || error.details || JSON.stringify(error)}`);
+    } else if (data) {
+      setProfile(data as Profile);
+      setAuthError(null);
     }
     setLoading(false);
   };
@@ -73,7 +76,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   return (
     <AuthContext.Provider value={{ session, user, profile, signOut, loading }}>
-      {!loading && children}
+      {authError ? (
+        <div className="min-h-screen flex items-center justify-center bg-slate-50 p-6">
+          <div className="bg-red-50 border border-red-200 text-red-800 p-6 rounded-xl max-w-lg shadow-sm">
+            <h3 className="font-bold text-lg mb-2">Critical Database Error</h3>
+            <p className="mb-4">The app successfully logged you in, but the database blocked us from reading your profile. This is almost certainly because the Row Level Security (RLS) SQL command was not run.</p>
+            <div className="bg-white p-3 rounded border border-red-100 font-mono text-sm mb-4">
+              {authError}
+            </div>
+            <p className="text-sm font-semibold">Please run this in your Supabase SQL Editor:</p>
+            <pre className="bg-slate-900 text-slate-50 p-4 rounded mt-2 text-xs overflow-x-auto">
+              {`ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;\nCREATE POLICY "Allow public read profiles" ON profiles FOR SELECT USING (true);\nCREATE POLICY "Allow users to update own profile" ON profiles FOR UPDATE USING (auth.uid() = id);`}
+            </pre>
+          </div>
+        </div>
+      ) : (
+        !loading && children
+      )}
     </AuthContext.Provider>
   );
 };

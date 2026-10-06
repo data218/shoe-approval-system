@@ -1,29 +1,34 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import MainLayout from './layouts/MainLayout';
 import Login from './pages/Login';
 
 import Landing from './pages/Landing';
-
-// Placeholder components
-const Dashboard = () => <div className="p-6 bg-white rounded-xl shadow-sm border border-slate-100"><h2 className="text-xl font-semibold mb-4">Dashboard (Under Construction)</h2><p className="text-slate-500">More features coming soon...</p></div>;
-const Inbox = () => <div className="p-6 bg-white rounded-xl shadow-sm border border-slate-100"><h2 className="text-xl font-semibold mb-4">Approval Inbox (Under Construction)</h2></div>;
-const NewRequest = () => <div className="p-6 bg-white rounded-xl shadow-sm border border-slate-100"><h2 className="text-xl font-semibold mb-4">New Request (Under Construction)</h2></div>;
+import Dashboard from './pages/Dashboard';
+import Inbox from './pages/Inbox';
+import NewRequest from './pages/NewRequest';
+import Items from './pages/Items';
+import Users from './pages/Users';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { session, loading } = useAuth();
+  const { session, profile, loading } = useAuth();
+  const location = useLocation();
   
   if (loading) {
     return <div className="flex h-screen items-center justify-center bg-slate-50">Loading...</div>;
   }
   
   if (!session) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/" replace />;
   }
+
+
   
   return <>{children}</>;
 };
+
+
 
 function AppRoutes() {
   const { session, loading } = useAuth();
@@ -37,6 +42,7 @@ function AppRoutes() {
       {/* Public Landing Page */}
       <Route path="/" element={session ? <Navigate to="/dashboard" replace /> : <Landing />} />
       <Route path="/login" element={session ? <Navigate to="/dashboard" replace /> : <Login />} />
+
       
       {/* Protected Enterprise Routes */}
       <Route path="/dashboard" element={
@@ -47,6 +53,8 @@ function AppRoutes() {
         <Route index element={<Dashboard />} />
         <Route path="inbox" element={<Inbox />} />
         <Route path="new" element={<NewRequest />} />
+        <Route path="items" element={<Items />} />
+        <Route path="users" element={<Users />} />
       </Route>
       
       <Route path="*" element={<Navigate to="/" replace />} />

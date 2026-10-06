@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Key, Mail, AlertCircle } from 'lucide-react';
+import { Key, Mail, AlertCircle, Eye, EyeOff } from 'lucide-react';
 
 export default function Login() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
@@ -12,7 +15,7 @@ export default function Login() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [employeeCode, setEmployeeCode] = useState('');
   const [fullName, setFullName] = useState('');
-  const [role, setRole] = useState<'REQUESTER' | 'NARENDRA' | 'SANJEEV' | 'ADMIN'>('REQUESTER');
+  const [role, setRole] = useState<'REQUESTER' | 'L1_APPROVER' | 'L2_APPROVER' | 'ADMIN'>('REQUESTER');
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,6 +24,12 @@ export default function Login() {
 
     try {
       if (isSignUp) {
+        // Enforce basic password complexity so we don't hit Supabase's weak password error
+        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{6,}$/;
+        if (!passwordRegex.test(password)) {
+          throw new Error('Password must be at least 6 characters and include at least one letter, one number, and one special character (@$!%*#?&).');
+        }
+
         const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
@@ -29,6 +38,11 @@ export default function Login() {
         if (signUpError) throw signUpError;
         
         if (data.user) {
+          // Check if user already exists
+          if (data.user.identities && data.user.identities.length === 0) {
+            throw new Error('This email is already registered. Please click "Sign in instead" and log in.');
+          }
+
           // Create profile
           const { error: profileError } = await supabase.from('profiles').insert([
             {
@@ -43,7 +57,7 @@ export default function Login() {
           
           if (profileError) {
              console.error('Profile creation failed:', profileError);
-             throw new Error('User created but profile setup failed. Check RLS or schema.');
+             throw new Error('Database Error: You MUST run the SQL command in Supabase to allow Profile creation (Row Level Security is blocking it).');
           }
         }
       } else {
@@ -112,13 +126,24 @@ export default function Login() {
                   <Key className="h-5 w-5 text-slate-400" />
                 </div>
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="focus:ring-slate-500 focus:border-slate-500 block w-full pl-10 sm:text-sm border-slate-300 rounded-lg py-2 border"
+                  className="focus:ring-slate-500 focus:border-slate-500 block w-full pl-10 pr-10 sm:text-sm border-slate-300 rounded-lg py-2 border"
                   placeholder="••••••••"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5 text-indigo-500" />
+                  ) : (
+                    <Eye className="h-5 w-5 text-slate-400 hover:text-indigo-500 transition-colors" />
+                  )}
+                </button>
               </div>
             </div>
 
@@ -152,15 +177,22 @@ export default function Login() {
                     className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-slate-300 focus:outline-none focus:ring-slate-500 focus:border-slate-500 sm:text-sm rounded-lg border"
                   >
                     <option value="REQUESTER">Requester (Employee)</option>
-                    <option value="NARENDRA">Narendra (Level 1)</option>
-                    <option value="SANJEEV">Sanjeev (Level 2)</option>
+                    <option value="L1_APPROVER">Level 1 Approver</option>
+                    <option value="L2_APPROVER">Level 2 Approver</option>
                     <option value="ADMIN">Admin</option>
                   </select>
                 </div>
               </>
             )}
 
-            <div>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => navigate('/')}
+                className="w-full flex justify-center py-2.5 px-4 border border-slate-300 rounded-lg shadow-sm text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900 transition-colors"
+              >
+                Cancel
+              </button>
               <button
                 type="submit"
                 disabled={loading}
@@ -177,7 +209,7 @@ export default function Login() {
                 <div className="w-full border-t border-slate-200" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-slate-500">Testing?</span>
+                <span className="px-2 bg-white text-slate-500">New here?</span>
               </div>
             </div>
 
@@ -186,7 +218,7 @@ export default function Login() {
                 onClick={() => setIsSignUp(!isSignUp)}
                 className="w-full flex justify-center py-2.5 px-4 border border-slate-300 rounded-lg shadow-sm text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900 transition-colors"
               >
-                {isSignUp ? 'Sign in instead' : 'Create test account'}
+                {isSignUp ? 'Sign in instead' : 'Create new account'}
               </button>
             </div>
           </div>
