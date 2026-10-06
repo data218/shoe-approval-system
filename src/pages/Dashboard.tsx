@@ -28,7 +28,7 @@ export default function Dashboard() {
       
       // 1. Fetch Recent Requests
       let query = supabase
-        .from('requests')
+        .from('shoe_requests')
         .select(`
           *, 
           requester:profiles!requester_id(full_name, department), 
@@ -72,7 +72,7 @@ export default function Dashboard() {
 
       // 2. Fetch Stats
       // For stats, we need all requests visible to the user
-      let statsQuery = supabase.from('requests').select('*');
+      let statsQuery = supabase.from('shoe_requests').select('*');
       if (profile?.role === 'REQUESTER') {
         statsQuery = statsQuery.eq('requester_id', profile.id);
       }
@@ -104,8 +104,8 @@ export default function Dashboard() {
       const approvedIds = (allReqs || []).filter(r => r.status === 'FINAL_APPROVED').map(r => r.id);
       
       if (approvedIds.length > 0) {
-        const { data: purData } = await supabase.from('purchase_details').select('total_amount').in('request_id', approvedIds);
-        const { data: disData } = await supabase.from('discount_details').select('final_price').in('request_id', approvedIds);
+        const { data: purData } = await supabase.from('shoe_purchase_details').select('total_amount').in('request_id', approvedIds);
+        const { data: disData } = await supabase.from('shoe_discount_details').select('final_price').in('request_id', approvedIds);
         
         purData?.forEach(p => totalVal += parseFloat(p.total_amount || '0'));
         disData?.forEach(d => totalVal += parseFloat(d.final_price || '0'));

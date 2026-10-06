@@ -36,7 +36,7 @@ export default function Users() {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('profiles')
+        .from('shoe_profiles')
         .select('*')
         .order('full_name', { ascending: true });
 
@@ -54,7 +54,7 @@ export default function Users() {
     try {
       setUpdateLoading(userId);
       const { error } = await supabase
-        .from('profiles')
+        .from('shoe_profiles')
         .update({ role: newRole })
         .eq('id', userId);
 
@@ -77,7 +77,7 @@ export default function Users() {
     try {
       setUpdateLoading(userId);
       const { error } = await supabase
-        .from('profiles')
+        .from('shoe_profiles')
         .delete()
         .eq('id', userId);
 
@@ -107,7 +107,7 @@ export default function Users() {
     try {
       setEditLoading(true);
       const { error } = await supabase
-        .from('profiles')
+        .from('shoe_profiles')
         .update({
           full_name: editForm.full_name,
           employee_code: editForm.employee_code,

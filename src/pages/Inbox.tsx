@@ -46,7 +46,7 @@ export default function Inbox() {
       setLoading(true);
       
       let query = supabase
-        .from('requests')
+        .from('shoe_requests')
         .select(`
           *,
           requester:profiles!requester_id(full_name, employee_code, department),
@@ -97,7 +97,7 @@ export default function Inbox() {
     
     try {
       setDetailsLoading(true);
-      const table = req.type === 'PURCHASE' ? 'purchase_details' : 'discount_details';
+      const table = req.type === 'PURCHASE' ? 'shoe_purchase_details' : 'shoe_discount_details';
       const { data, error: detailError } = await supabase
         .from(table)
         .select('*')
@@ -105,7 +105,7 @@ export default function Inbox() {
         .single();
         
       const { data: auditData } = await supabase
-        .from('audit_logs')
+        .from('shoe_audit_logs')
         .select('*')
         .eq('request_id', req.id)
         .order('created_at', { ascending: false })
@@ -177,7 +177,7 @@ export default function Inbox() {
 
       // 1. Update Request
       const { error: updateError } = await supabase
-        .from('requests')
+        .from('shoe_requests')
         .update({ status: newStatus, updated_at: new Date().toISOString() })
         .eq('id', selectedRequest.id);
         
@@ -185,7 +185,7 @@ export default function Inbox() {
 
       // 2. Insert Audit Log
       const { error: auditError } = await supabase
-        .from('audit_logs')
+        .from('shoe_audit_logs')
         .insert([{
           request_id: selectedRequest.id,
           user_id: user!.id,

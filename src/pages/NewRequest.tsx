@@ -19,7 +19,7 @@ export default function NewRequest() {
 
   const fetchMasterItems = async () => {
     try {
-      const { data, error } = await supabase.from('items').select('*').order('name');
+      const { data, error } = await supabase.from('shoe_items').select('*').order('name');
       if (error) throw error;
       setMasterItems(data || []);
     } catch (err) {
@@ -106,7 +106,7 @@ export default function NewRequest() {
       
       // Get the latest request of this type FOR THIS YEAR to determine the next ID
       const { data: latestReq, error: latestError } = await supabase
-        .from('requests')
+        .from('shoe_requests')
         .select('display_id')
         .eq('type', requestType)
         .like('display_id', `${prefix}-${year}-%`)
@@ -138,7 +138,7 @@ export default function NewRequest() {
 
         // 3. Insert main request
         const { data, error: requestError } = await supabase
-          .from('requests')
+          .from('shoe_requests')
           .insert([{
             display_id: displayId,
             type: requestType,
@@ -171,7 +171,7 @@ export default function NewRequest() {
       // 4. Insert specific details
       if (requestType === 'PURCHASE') {
         const { error: purError } = await supabase
-          .from('purchase_details')
+          .from('shoe_purchase_details')
           .insert([{
             request_id: requestData.id,
             supplier: supplier,
@@ -185,7 +185,7 @@ export default function NewRequest() {
         if (purError) throw purError;
       } else {
         const { error: disError } = await supabase
-          .from('discount_details')
+          .from('shoe_discount_details')
           .insert([{
             request_id: requestData.id,
             customer_name: customerName,
@@ -202,7 +202,7 @@ export default function NewRequest() {
       }
 
       // 5. Create an audit log for creation
-      await supabase.from('audit_logs').insert([{
+      await supabase.from('shoe_audit_logs').insert([{
         request_id: requestData.id,
         user_id: user.id,
         action: 'CREATED',

@@ -21,7 +21,7 @@ export default function CompleteProfile() {
     setError(null);
 
     try {
-      const { error: profileError } = await supabase.from('profiles').insert([
+      const { error: profileError } = await supabase.from('shoe_profiles').insert([
         {
           id: session.user.id,
           full_name: fullName,

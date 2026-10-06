@@ -44,7 +44,7 @@ export default function Login() {
           }
 
           // Create profile
-          const { error: profileError } = await supabase.from('profiles').insert([
+          const { error: profileError } = await supabase.from('shoe_profiles').insert([
             {
               id: data.user.id,
               full_name: fullName,

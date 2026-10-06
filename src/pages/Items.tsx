@@ -29,7 +29,7 @@ export default function Items() {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('items')
+        .from('shoe_items')
         .select('*')
         .order('name', { ascending: true });
         
@@ -49,7 +49,7 @@ export default function Items() {
     setError(null);
     try {
       const { error } = await supabase
-        .from('items')
+        .from('shoe_items')
         .insert([{
           name,
           sku,
@@ -114,7 +114,7 @@ export default function Items() {
           }
 
           const { error: insertError } = await supabase
-            .from('items')
+            .from('shoe_items')
             .insert(itemsToInsert);
 
           if (insertError) {
