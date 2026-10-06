@@ -421,10 +421,13 @@ export default function NewRequest() {
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Customer Mobile</label>
                   <input
-                    type="text"
+                    type="tel"
                     required
+                    maxLength={10}
+                    pattern="[0-9]{10}"
+                    title="Please enter exactly 10 digits"
                     value={customerMobile}
-                    onChange={(e) => setCustomerMobile(e.target.value)}
+                    onChange={(e) => setCustomerMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
                     className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
                   />
                 </div>
