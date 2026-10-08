@@ -29,7 +29,7 @@ export default function ThemeSwitcher() {
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="p-2 text-slate-400 hover:text-brand-600 relative rounded-full hover:bg-slate-100 transition-colors flex items-center justify-center"
+        className="p-2 text-brand-500 hover:text-brand-600 relative rounded-full hover:bg-brand-50 transition-colors flex items-center justify-center"
         title="Change Theme"
       >
         <Palette className="w-5 h-5" />

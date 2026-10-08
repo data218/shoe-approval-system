@@ -104,10 +104,9 @@ export default function MainLayout() {
             <button
               onClick={() => signOut()}
               title="Sign Out"
-              className="flex items-center gap-2 px-3 py-2 bg-slate-900 text-white text-sm font-medium hover:bg-black rounded-lg transition-colors shadow-sm"
+              className="p-2 text-rose-500 hover:text-rose-600 relative rounded-full hover:bg-rose-50 transition-colors"
             >
-              <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">Logout</span>
+              <LogOut className="w-5 h-5" />
             </button>
           </div>
         </header>

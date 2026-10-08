@@ -103,7 +103,7 @@ export default function NotificationsDropdown() {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="p-2 text-slate-400 hover:text-brand-600 relative rounded-full hover:bg-slate-100 transition-colors"
+        className="p-2 text-amber-500 hover:text-amber-600 relative rounded-full hover:bg-amber-50 transition-colors"
       >
         <Bell className="w-5 h-5" />
         {notifications.length > 0 && (
