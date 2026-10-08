@@ -25,9 +25,10 @@ export default function Login() {
     try {
       if (isSignUp) {
         // Enforce basic password complexity so we don't hit Supabase's weak password error
-        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{6,}$/;
+        // Requires at least 1 letter, 1 number, 1 special character, and 6+ length
+        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d]).{6,}$/;
         if (!passwordRegex.test(password)) {
-          throw new Error('Password must be at least 6 characters and include at least one letter, one number, and one special character (@$!%*#?&).');
+          throw new Error('Password must be at least 6 characters and include at least one letter, one number, and one special character.');
         }
 
         const { data, error: signUpError } = await supabase.auth.signUp({
