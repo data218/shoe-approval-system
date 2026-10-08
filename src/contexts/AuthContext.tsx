@@ -106,6 +106,14 @@ CREATE POLICY "Allow public read profiles" ON shoe_profiles FOR SELECT USING (tr
 CREATE POLICY "Allow users to update own profile" ON shoe_profiles FOR UPDATE USING (auth.uid() = id);
 CREATE POLICY "Allow users to insert own profile" ON shoe_profiles FOR INSERT WITH CHECK (auth.uid() = id);`}
             </pre>
+            <div className="mt-6 flex justify-end">
+              <button 
+                onClick={() => supabase.auth.signOut()}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium text-sm"
+              >
+                Sign Out & Start Over
+              </button>
+            </div>
           </div>
         </div>
       ) : (
