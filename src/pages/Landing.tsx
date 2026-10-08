@@ -98,7 +98,7 @@ export default function Landing() {
       {/* Footer */}
       <footer className="border-t border-slate-200 py-8 text-center mt-12 bg-white">
         <p className="text-slate-500 text-sm font-medium">
-          © {new Date().getFullYear()} O Shoes Enterprise. All rights reserved.
+          © {new Date().getFullYear()} Oh Shoes Enterprise. All rights reserved.
         </p>
       </footer>
     </div>
