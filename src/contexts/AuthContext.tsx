@@ -85,8 +85,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               {authError}
             </div>
             <p className="text-sm font-semibold">Please run this in your Supabase SQL Editor:</p>
-            <pre className="bg-slate-900 text-slate-50 p-4 rounded mt-2 text-xs overflow-x-auto">
-              {`ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;\nCREATE POLICY "Allow public read profiles" ON profiles FOR SELECT USING (true);\nCREATE POLICY "Allow users to update own profile" ON profiles FOR UPDATE USING (auth.uid() = id);`}
+            <pre className="bg-slate-900 text-slate-50 p-4 rounded mt-2 text-xs overflow-x-auto whitespace-pre-wrap">
+              {`ALTER TABLE shoe_profiles ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow public read profiles" ON shoe_profiles FOR SELECT USING (true);
+CREATE POLICY "Allow users to update own profile" ON shoe_profiles FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "Allow users to insert own profile" ON shoe_profiles FOR INSERT WITH CHECK (auth.uid() = id);`}
             </pre>
           </div>
         </div>
