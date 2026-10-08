@@ -41,7 +41,7 @@ export default function MainLayout() {
             <div className="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center shadow-md shadow-brand-200">
               <ShieldCheck className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold text-slate-900 tracking-tight">O <span className="text-brand-600">Shoes</span></span>
+            <span className="text-xl font-bold text-slate-900 tracking-tight">Oh <span className="text-brand-600">Shoes</span></span>
           </div>
         </div>
 
@@ -120,7 +120,7 @@ export default function MainLayout() {
                 <div className="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center shadow-md shadow-brand-200">
                   <ShieldCheck className="w-5 h-5 text-white" />
                 </div>
-                <span className="text-xl font-bold text-slate-900 tracking-tight">O <span className="text-brand-600">Shoes</span></span>
+                <span className="text-xl font-bold text-slate-900 tracking-tight">Oh <span className="text-brand-600">Shoes</span></span>
               </div>
               {profile && (
                 <div className="p-4 border-b border-slate-100 bg-slate-50/50">

@@ -11,7 +11,7 @@ export default function Landing() {
             <div className="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center">
               <ShieldCheck className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold text-slate-900 tracking-tight">O <span className="text-brand-600">Shoes</span></span>
+            <span className="text-xl font-bold text-slate-900 tracking-tight">Oh <span className="text-brand-600">Shoes</span></span>
           </div>
           <div className="flex items-center gap-4">
             <Link to="/login" className="text-sm font-semibold text-slate-600 hover:text-brand-600 transition-colors">
