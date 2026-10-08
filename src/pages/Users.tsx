@@ -1,9 +1,23 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 import { useAuth } from '../contexts/AuthContext';
-import { Shield, ShieldAlert, ShieldCheck, Users as UsersIcon, UserCheck, Search, AlertCircle, RefreshCw, Pencil, Trash2, X, Key } from 'lucide-react';
+import { Shield, ShieldAlert, ShieldCheck, Users as UsersIcon, UserCheck, Search, AlertCircle, RefreshCw, Pencil, Trash2, X, Key, Plus } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 import { Pagination } from '../components/Pagination';
+
+// Create a secondary client specifically for admin user creation so it doesn't log the admin out
+const adminAuthClient = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY,
+  {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false
+    }
+  }
+);
 
 export default function Users() {
   const { profile } = useAuth();
@@ -25,6 +39,19 @@ export default function Users() {
   // Reset Password Modal State
   const [resetModalUser, setResetModalUser] = useState<any | null>(null);
   const [resetModalEmail, setResetModalEmail] = useState('');
+
+  // Create User Modal State
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [createForm, setCreateForm] = useState({
+    email: '',
+    password: '',
+    full_name: '',
+    employee_code: '',
+    department: '',
+    role: 'REQUESTER' as any
+  });
+  const [createLoading, setCreateLoading] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
 
   if (profile && profile.role !== 'ADMIN') {
     return <Navigate to="/dashboard" replace />;
@@ -152,6 +179,50 @@ export default function Users() {
     }
   };
 
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreateLoading(true);
+    setCreateError(null);
+
+    try {
+      // 1. Create auth user using secondary client (won't log out admin)
+      const { data: authData, error: authError } = await adminAuthClient.auth.signUp({
+        email: createForm.email,
+        password: createForm.password,
+      });
+
+      if (authError) throw authError;
+
+      if (authData.user) {
+        // 2. Insert profile using main client
+        const { error: profileError } = await supabase.from('shoe_profiles').insert([
+          {
+            id: authData.user.id,
+            full_name: createForm.full_name,
+            employee_code: createForm.employee_code,
+            department: createForm.department || 'Sales',
+            role: createForm.role,
+            showroom_location: 'Main Branch'
+          }
+        ]);
+
+        if (profileError) {
+          throw new Error('User created in Auth, but Profile creation failed. Please ensure Admins have INSERT permissions in RLS on shoe_profiles. Error: ' + profileError.message);
+        }
+
+        // 3. Success! Refresh users list
+        await fetchUsers();
+        setCreateModalOpen(false);
+        setCreateForm({ email: '', password: '', full_name: '', employee_code: '', department: '', role: 'REQUESTER' });
+      }
+    } catch (err: any) {
+      console.error(err);
+      setCreateError(err.message || 'Failed to create user');
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
   const filteredUsers = users.filter(u => {
     const nameStr = String(u.full_name || '').toLowerCase();
     const codeStr = String(u.employee_code || '').toLowerCase();
@@ -197,9 +268,17 @@ export default function Users() {
               className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none text-sm"
             />
           </div>
-          <div className="flex items-center gap-2 text-sm text-slate-500 font-medium">
-            <UsersIcon className="w-5 h-5 text-slate-400" />
-            {filteredUsers.length} Users Found
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 text-sm text-slate-500 font-medium">
+              <UsersIcon className="w-5 h-5 text-slate-400" />
+              {filteredUsers.length} Users Found
+            </div>
+            <button
+              onClick={() => setCreateModalOpen(true)}
+              className="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-sm transition-colors flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" /> Create User
+            </button>
           </div>
         </div>
 
@@ -427,6 +506,115 @@ export default function Users() {
                 Send Reset Link
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create User Modal */}
+      {createModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                <Plus className="w-5 h-5 text-brand-600" />
+                Create New User
+              </h3>
+              <button 
+                onClick={() => {
+                  setCreateModalOpen(false);
+                  setCreateError(null);
+                }}
+                className="text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleCreateUser}>
+              <div className="p-6 space-y-4">
+                {createError && (
+                  <div className="bg-red-50 border border-red-200 p-3 rounded-lg flex items-start gap-2 text-red-700 text-sm">
+                    <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                    <div>{createError}</div>
+                  </div>
+                )}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Email Address</label>
+                  <input
+                    type="email"
+                    required
+                    value={createForm.email}
+                    onChange={(e) => setCreateForm({...createForm, email: e.target.value})}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+                  <input
+                    type="password"
+                    required
+                    minLength={6}
+                    value={createForm.password}
+                    onChange={(e) => setCreateForm({...createForm, password: e.target.value})}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={createForm.full_name}
+                    onChange={(e) => setCreateForm({...createForm, full_name: e.target.value})}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Employee Code</label>
+                  <input
+                    type="text"
+                    required
+                    value={createForm.employee_code}
+                    onChange={(e) => setCreateForm({...createForm, employee_code: e.target.value})}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Role</label>
+                  <select
+                    value={createForm.role}
+                    onChange={(e) => setCreateForm({...createForm, role: e.target.value})}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                  >
+                    <option value="REQUESTER">Requester</option>
+                    <option value="L1_APPROVER">Level 1 Approver</option>
+                    <option value="L2_APPROVER">Level 2 Approver</option>
+                    <option value="ADMIN">Admin</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCreateModalOpen(false);
+                    setCreateError(null);
+                  }}
+                  className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={createLoading}
+                  className="px-4 py-2 bg-brand-600 text-white text-sm font-medium rounded-lg hover:bg-brand-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {createLoading && <RefreshCw className="w-4 h-4 animate-spin" />}
+                  Create User
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
