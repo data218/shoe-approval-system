@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { Activity, Clock, CheckCircle, XCircle, Package, Tag, ArrowRight, Eye, MessageSquare, X } from 'lucide-react';
+import { Activity, Clock, CheckCircle, XCircle, Package, Tag, ArrowRight, Eye, MessageSquare, X, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Pagination } from '../components/Pagination';
 
@@ -196,9 +196,18 @@ export default function Dashboard() {
           <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Dashboard Overview</h1>
           <p className="text-slate-500 mt-1">Welcome back, {profile?.full_name}</p>
         </div>
-        <button onClick={() => navigate('/dashboard/new')} className="bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-sm transition-all flex items-center gap-2">
-          New Request <ArrowRight className="w-4 h-4" />
-        </button>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={fetchDashboardData}
+            className="p-2.5 text-slate-400 hover:text-brand-600 bg-white rounded-xl border border-slate-200 shadow-sm transition-colors"
+            title="Refresh Dashboard"
+          >
+            <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+          <button onClick={() => navigate('/dashboard/new')} className="bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-sm transition-all flex items-center gap-2">
+            New Request <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       {loading ? (
