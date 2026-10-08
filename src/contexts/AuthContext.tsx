@@ -84,7 +84,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   return (
     <AuthContext.Provider value={{ session, user, profile, signOut, loading }}>
-      {authError ? (
+      {authError && !window.location.pathname.includes('/update-password') ? (
         <div className="min-h-screen flex items-center justify-center bg-slate-50 p-6">
           <div className="bg-red-50 border border-red-200 text-red-800 p-6 rounded-xl max-w-lg shadow-sm">
             <h3 className="font-bold text-lg mb-2">Critical Database Error</h3>

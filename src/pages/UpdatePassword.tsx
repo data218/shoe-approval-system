@@ -6,6 +6,7 @@ import { Key, AlertCircle } from 'lucide-react';
 export default function UpdatePassword() {
   const navigate = useNavigate();
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -22,6 +23,12 @@ export default function UpdatePassword() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      setLoading(false);
+      return;
+    }
 
     const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d]).{6,}$/;
     if (!passwordRegex.test(password)) {
@@ -84,6 +91,23 @@ export default function UpdatePassword() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  className="focus:ring-slate-500 focus:border-slate-500 block w-full pl-10 sm:text-sm border-slate-300 rounded-lg py-2 border"
+                  placeholder="••••••••"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700">Confirm Password</label>
+              <div className="mt-1 relative rounded-md shadow-sm">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Key className="h-5 w-5 text-slate-400" />
+                </div>
+                <input
+                  type="password"
+                  required
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
                   className="focus:ring-slate-500 focus:border-slate-500 block w-full pl-10 sm:text-sm border-slate-300 rounded-lg py-2 border"
                   placeholder="••••••••"
                 />
