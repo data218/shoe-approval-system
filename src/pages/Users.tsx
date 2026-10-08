@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { Shield, ShieldAlert, ShieldCheck, Users as UsersIcon, UserCheck, Search, AlertCircle, RefreshCw, Pencil, Trash2, X } from 'lucide-react';
+import { Shield, ShieldAlert, ShieldCheck, Users as UsersIcon, UserCheck, Search, AlertCircle, RefreshCw, Pencil, Trash2, X, Key } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 import { Pagination } from '../components/Pagination';
 
@@ -87,6 +87,26 @@ export default function Users() {
     } catch (err: any) {
       console.error(err);
       alert('Failed to delete user. Ensure you have the proper Admin Delete RLS policies.');
+    } finally {
+      setUpdateLoading(null);
+    }
+  };
+
+  const handleAdminResetPassword = async (user: any) => {
+    const email = window.prompt(`Enter the email address for ${user.full_name} to send a password reset link:`);
+    if (!email) return;
+
+    try {
+      setUpdateLoading(user.id);
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/update-password`,
+      });
+
+      if (error) throw error;
+      alert(`Password reset link sent to ${email}`);
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message || 'Failed to send password reset email.');
     } finally {
       setUpdateLoading(null);
     }
@@ -230,6 +250,14 @@ export default function Users() {
                   <td className="px-6 py-4 text-right">
                     {u.id !== profile?.id && (
                       <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => handleAdminResetPassword(u)}
+                          disabled={updateLoading === u.id}
+                          className="p-1.5 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors disabled:opacity-50"
+                          title="Reset Password"
+                        >
+                          <Key className="w-4 h-4" />
+                        </button>
                         <button
                           onClick={() => openEditModal(u)}
                           className="p-1.5 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors"

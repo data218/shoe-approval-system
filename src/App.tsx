@@ -12,6 +12,7 @@ import NewRequest from './pages/NewRequest';
 import Items from './pages/Items';
 import Users from './pages/Users';
 import DataManagement from './pages/DataManagement';
+import UpdatePassword from './pages/UpdatePassword';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { session, loading } = useAuth();
@@ -43,6 +44,7 @@ function AppRoutes() {
       {/* Public Landing Page */}
       <Route path="/" element={session ? <Navigate to="/dashboard" replace /> : <Landing />} />
       <Route path="/login" element={session ? <Navigate to="/dashboard" replace /> : <Login />} />
+      <Route path="/update-password" element={<UpdatePassword />} />
 
       
       {/* Protected Enterprise Routes */}
