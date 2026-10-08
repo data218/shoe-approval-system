@@ -22,6 +22,10 @@ export default function Users() {
   const [editForm, setEditForm] = useState({ full_name: '', employee_code: '', department: '' });
   const [editLoading, setEditLoading] = useState(false);
 
+  // Reset Password Modal State
+  const [resetModalUser, setResetModalUser] = useState<any | null>(null);
+  const [resetModalEmail, setResetModalEmail] = useState('');
+
   if (profile && profile.role !== 'ADMIN') {
     return <Navigate to="/dashboard" replace />;
   }
@@ -92,18 +96,19 @@ export default function Users() {
     }
   };
 
-  const handleAdminResetPassword = async (user: any) => {
-    const email = window.prompt(`Enter the email address for ${user.full_name} to send a password reset link:`);
-    if (!email) return;
+  const handleAdminResetPassword = async () => {
+    if (!resetModalEmail || !resetModalUser) return;
 
     try {
-      setUpdateLoading(user.id);
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      setUpdateLoading(resetModalUser.id);
+      const { error } = await supabase.auth.resetPasswordForEmail(resetModalEmail, {
         redirectTo: `${window.location.origin}/update-password`,
       });
 
       if (error) throw error;
-      alert(`Password reset link sent to ${email}`);
+      alert(`Password reset link sent to ${resetModalEmail}`);
+      setResetModalUser(null);
+      setResetModalEmail('');
     } catch (err: any) {
       console.error(err);
       alert(err.message || 'Failed to send password reset email.');
@@ -251,7 +256,7 @@ export default function Users() {
                     {u.id !== profile?.id && (
                       <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
-                          onClick={() => handleAdminResetPassword(u)}
+                          onClick={() => setResetModalUser(u)}
                           disabled={updateLoading === u.id}
                           className="p-1.5 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors disabled:opacity-50"
                           title="Reset Password"
@@ -361,6 +366,71 @@ export default function Users() {
           </div>
         </div>
       )}
+
+      {/* Reset Password Modal */}
+      {resetModalUser && (
+        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+              <h3 className="font-semibold text-slate-800 flex items-center gap-2">
+                <Key className="w-4 h-4 text-brand-600" />
+                Reset Password
+              </h3>
+              <button
+                onClick={() => {
+                  setResetModalUser(null);
+                  setResetModalEmail('');
+                }}
+                className="text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <p className="text-sm text-slate-600 mb-4">
+                Enter the email address for <span className="font-semibold">{resetModalUser.full_name}</span> to send them a secure password reset link.
+              </p>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">User's Email Address</label>
+                <input
+                  type="email"
+                  value={resetModalEmail}
+                  onChange={(e) => setResetModalEmail(e.target.value)}
+                  placeholder="e.g. user@amgroupind.com"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                  autoFocus
+                />
+              </div>
+            </div>
+            
+            <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setResetModalUser(null);
+                  setResetModalEmail('');
+                }}
+                className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAdminResetPassword}
+                disabled={!resetModalEmail || updateLoading === resetModalUser.id}
+                className="px-4 py-2 bg-brand-600 text-white text-sm font-medium rounded-lg hover:bg-brand-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {updateLoading === resetModalUser.id ? (
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Key className="w-4 h-4" />
+                )}
+                Send Reset Link
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
