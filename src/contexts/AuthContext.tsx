@@ -91,7 +91,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             </div>
             <p className="text-sm font-semibold">Please run this in your Supabase SQL Editor:</p>
             <pre className="bg-slate-900 text-slate-50 p-4 rounded mt-2 text-xs overflow-x-auto whitespace-pre-wrap">
-              {`DROP POLICY IF EXISTS "Allow public read profiles" ON shoe_profiles;
+              {`-- 1. Fix role constraints
+ALTER TABLE shoe_profiles DROP CONSTRAINT IF EXISTS profiles_role_check;
+ALTER TABLE shoe_profiles DROP CONSTRAINT IF EXISTS shoe_profiles_role_check;
+ALTER TABLE shoe_profiles ADD CONSTRAINT shoe_profiles_role_check CHECK (role IN ('ADMIN', 'REQUESTER', 'L1_APPROVER', 'L2_APPROVER', 'NARENDRA', 'SANJEEV'));
+
+-- 2. Fix RLS policies
+DROP POLICY IF EXISTS "Allow public read profiles" ON shoe_profiles;
 DROP POLICY IF EXISTS "Allow users to update own profile" ON shoe_profiles;
 DROP POLICY IF EXISTS "Allow users to insert own profile" ON shoe_profiles;
 
