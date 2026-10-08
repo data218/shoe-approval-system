@@ -109,47 +109,47 @@ export default function Login() {
             {!isForgotPassword && (
               <>
                 <div>
-              <label className="block text-sm font-medium text-slate-700">Password</label>
-              <div className="mt-1 relative rounded-md shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Key className="h-5 w-5 text-slate-400" />
+                  <label className="block text-sm font-medium text-slate-700">Password</label>
+                  <div className="mt-1 relative rounded-md shadow-sm">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Key className="h-5 w-5 text-slate-400" />
+                    </div>
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="focus:ring-slate-500 focus:border-slate-500 block w-full pl-10 pr-10 sm:text-sm border-slate-300 rounded-lg py-2 border"
+                      placeholder="••••••••"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-5 w-5 text-brand-500" />
+                      ) : (
+                        <Eye className="h-5 w-5 text-slate-400 hover:text-brand-500 transition-colors" />
+                      )}
+                    </button>
+                  </div>
                 </div>
-                <input
-                  type={showPassword ? "text" : "password"}
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="focus:ring-slate-500 focus:border-slate-500 block w-full pl-10 pr-10 sm:text-sm border-slate-300 rounded-lg py-2 border"
-                  placeholder="••••••••"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-brand-500" />
-                  ) : (
-                    <Eye className="h-5 w-5 text-slate-400 hover:text-brand-500 transition-colors" />
-                  )}
-                </button>
-              </div>
-            </div>
 
-            {!isForgotPassword && (
-              <div className="flex items-center justify-end">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsForgotPassword(true);
-                    setError(null);
-                    setSuccess(null);
-                  }}
-                  className="text-sm font-medium text-brand-600 hover:text-brand-500"
-                >
-                  Forgot your password?
-                </button>
-              </div>
+                <div className="flex items-center justify-end">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsForgotPassword(true);
+                      setError(null);
+                      setSuccess(null);
+                    }}
+                    className="text-sm font-medium text-brand-600 hover:text-brand-500"
+                  >
+                    Forgot your password?
+                  </button>
+                </div>
+              </>
             )}
 
             <div className="flex gap-3">
@@ -176,7 +176,6 @@ export default function Login() {
               </button>
             </div>
           </form>
-          </div>
         </div>
       </div>
     </div>
