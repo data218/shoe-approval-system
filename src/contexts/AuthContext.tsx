@@ -53,7 +53,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription.unsubscribe();
   }, []);
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = async (userId: string, retries = 3) => {
     const { data, error } = await supabase
       .from('shoe_profiles')
       .select('*')
@@ -61,6 +61,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .single();
     
     if (error) {
+      if (error.code === 'PGRST116' && retries > 0) {
+        // PGRST116 means 0 rows returned. Wait 1s and retry due to signup race condition
+        setTimeout(() => fetchProfile(userId, retries - 1), 1000);
+        return;
+      }
       console.error('Error fetching profile:', error);
       setAuthError(`Database Error: ${error.message || error.details || JSON.stringify(error)}`);
     } else if (data) {

@@ -31,6 +31,16 @@ export default function Login() {
           throw new Error('Password must be at least 6 characters and include at least one letter, one number, and one special character.');
         }
 
+        // Check if employee code already exists to avoid half-created users
+        const { data: existingProfiles } = await supabase
+          .from('shoe_profiles')
+          .select('id')
+          .eq('employee_code', employeeCode);
+          
+        if (existingProfiles && existingProfiles.length > 0) {
+          throw new Error('This Employee Code is already registered to another account.');
+        }
+
         const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
