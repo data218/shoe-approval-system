@@ -66,28 +66,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (error) {
       if (error.code === 'PGRST116') {
         // PGRST116 means 0 rows returned. Profile is missing!
-        // Let's self-heal by creating a default profile for them.
+        
+        // Wait and retry first, as the signup process might still be inserting the profile (race condition)
         if (retries > 0) {
-          const { error: insertError } = await supabase.from('shoe_profiles').insert({
-            id: userId,
-            full_name: 'Missing Profile',
-            employee_code: `FIX-${Math.floor(Math.random() * 10000)}`,
-            role: 'REQUESTER',
-            department: 'System Fixed',
-            showroom_location: 'System Fixed'
-          });
-          
-          if (!insertError) {
-             // Successfully self-healed, fetch again
-             setTimeout(() => fetchProfile(userId, retries - 1), 500);
-             return;
-          } else {
-             // Self-healing failed. Show EXACTLY why so we can fix it.
-             console.error('Self-healing insert failed:', insertError);
-             setAuthError(`Self-Healing Failed! Database rejected the insert: ${insertError.message || insertError.details || JSON.stringify(insertError)}`);
-             setLoading(false);
-             return;
-          }
+          setTimeout(() => fetchProfile(userId, retries - 1), 1000);
+          return;
+        }
+
+        // If we ran out of retries, it means the profile genuinely failed to create during signup.
+        // Let's self-heal by creating a default profile for them.
+        const { error: insertError } = await supabase.from('shoe_profiles').insert({
+          id: userId,
+          full_name: 'Missing Profile',
+          employee_code: `FIX-${Math.floor(Math.random() * 10000)}`,
+          role: 'REQUESTER',
+          department: 'System Fixed',
+          showroom_location: 'System Fixed'
+        });
+        
+        if (!insertError) {
+           // Successfully self-healed, fetch again
+           setTimeout(() => fetchProfile(userId, 0), 500);
+           return;
+        } else {
+           // Self-healing failed. Show EXACTLY why so we can fix it.
+           console.error('Self-healing insert failed:', insertError);
+           setAuthError(`Self-Healing Failed! Database rejected the insert: ${insertError.message || insertError.details || JSON.stringify(insertError)}`);
+           setLoading(false);
+           return;
         }
       }
       console.error('Error fetching profile:', error);
