@@ -35,7 +35,7 @@ export default function MainLayout() {
   return (
     <div className="min-h-screen bg-slate-100 flex font-sans">
       {/* Sidebar for Desktop */}
-      <aside className="hidden md:flex flex-col w-64 bg-white border-r border-slate-200 shadow-sm z-20">
+      <aside className="hidden md:flex flex-col w-64 bg-slate-50 border-r border-slate-200 shadow-sm z-20">
         <div className="h-16 flex items-center justify-center px-6 border-b border-slate-100 gap-2">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center shadow-md shadow-brand-200">
