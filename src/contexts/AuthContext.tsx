@@ -64,10 +64,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .single();
     
     if (error) {
-      if (error.code === 'PGRST116' && retries > 0) {
-        // PGRST116 means 0 rows returned. Wait 1s and retry due to signup race condition
-        setTimeout(() => fetchProfile(userId, retries - 1), 1000);
-        return;
+      if (error.code === 'PGRST116') {
+        // PGRST116 means 0 rows returned. Profile is missing!
+        // Let's self-heal by creating a default profile for them.
+        if (retries > 0) {
+          const { error: insertError } = await supabase.from('shoe_profiles').insert({
+            id: userId,
+            full_name: 'Missing Profile',
+            employee_code: `FIX-${Math.floor(Math.random() * 10000)}`,
+            role: 'REQUESTER',
+            department: 'System Fixed',
+            showroom_location: 'System Fixed'
+          });
+          
+          if (!insertError) {
+             // Successfully self-healed, fetch again
+             setTimeout(() => fetchProfile(userId, retries - 1), 500);
+             return;
+          }
+        }
       }
       console.error('Error fetching profile:', error);
       setAuthError(`Database Error: ${error.message || error.details || JSON.stringify(error)}`);
