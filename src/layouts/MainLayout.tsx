@@ -7,13 +7,13 @@ import {
   LogOut, 
   ShieldCheck,
   Menu,
-  Bell,
   Package,
   Users as UsersIcon,
   Database
 } from 'lucide-react';
 import { useState } from 'react';
 import ThemeSwitcher from '../components/ThemeSwitcher';
+import NotificationsDropdown from '../components/NotificationsDropdown';
 
 export default function MainLayout() {
   const { profile, signOut } = useAuth();
@@ -99,10 +99,7 @@ export default function MainLayout() {
 
           <div className="flex items-center gap-4 ml-auto">
             <ThemeSwitcher />
-            <button className="p-2 text-slate-400 hover:text-brand-600 relative rounded-full hover:bg-slate-100 transition-colors">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white"></span>
-            </button>
+            <NotificationsDropdown />
             <div className="w-px h-6 bg-slate-200"></div>
             <button
               onClick={() => signOut()}
