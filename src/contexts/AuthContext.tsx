@@ -81,6 +81,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
              // Successfully self-healed, fetch again
              setTimeout(() => fetchProfile(userId, retries - 1), 500);
              return;
+          } else {
+             // Self-healing failed. Show EXACTLY why so we can fix it.
+             console.error('Self-healing insert failed:', insertError);
+             setAuthError(`Self-Healing Failed! Database rejected the insert: ${insertError.message || insertError.details || JSON.stringify(insertError)}`);
+             setLoading(false);
+             return;
           }
         }
       }
