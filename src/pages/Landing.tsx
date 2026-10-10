@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, ShieldCheck, FileText, CheckCircle, Zap } from 'lucide-react';
+import { ArrowRight, ShieldCheck } from 'lucide-react';
 
 export default function Landing() {
   return (
@@ -70,40 +70,6 @@ export default function Landing() {
                 <ArrowRight className="w-5 h-5" />
               </Link>
             </div>
-          </div>
-
-          {/* Features Grid */}
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 rounded-xl bg-sky-50 flex items-center justify-center mb-4 border border-sky-100">
-                <CheckCircle className="w-6 h-6 text-sky-600" />
-              </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-2">Multi-Level Approvals</h3>
-              <p className="text-slate-600 text-sm leading-relaxed">
-                Automated routing from Employees to Managers and Final Approvers with full accountability.
-              </p>
-            </div>
-
-            <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 rounded-xl bg-brand-50 flex items-center justify-center mb-4 border border-brand-100">
-                <Zap className="w-6 h-6 text-brand-600" />
-              </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-2">Smart Validation</h3>
-              <p className="text-slate-600 text-sm leading-relaxed">
-                Automatic warnings for high-value purchases and excessive discount requests before they reach the manager.
-              </p>
-            </div>
-
-            <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center mb-4 border border-emerald-100">
-                <FileText className="w-6 h-6 text-emerald-600" />
-              </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-2">Complete Audit Trail</h3>
-              <p className="text-slate-600 text-sm leading-relaxed">
-                Track every state change, remark, send-back, and final decision in a secure, immutable history log.
-              </p>
-            </div>
-          </div>
         </div>
       </main>
 
