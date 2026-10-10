@@ -3,7 +3,7 @@ import { ArrowRight, ShieldCheck, FileText, CheckCircle, Zap } from 'lucide-reac
 
 export default function Landing() {
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-brand-500/30 font-sans">
+    <div className="min-h-screen bg-red-600 text-white selection:bg-white/30 font-sans">
       {/* Navigation */}
       <nav className="fixed top-0 w-full z-50 border-b border-slate-200 bg-white/80 backdrop-blur-md shadow-sm">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
@@ -29,30 +29,32 @@ export default function Landing() {
       </nav>
 
       {/* Hero Section */}
-      <main className="pt-32 pb-20 px-6 relative overflow-hidden">
-        {/* Background Gradients */}
-        <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-brand-400/20 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-sky-400/20 rounded-full blur-[120px]" />
+      <main className="pt-32 pb-20 px-6 relative overflow-hidden min-h-[80vh] flex items-center">
+        {/* Background Gradients and Watermark */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full text-center pointer-events-none select-none opacity-20 z-0">
+          <h1 className="text-[12rem] md:text-[20rem] font-extrabold text-black tracking-tighter leading-none">
+            SHOES
+          </h1>
+        </div>
 
-        <div className="max-w-7xl mx-auto relative z-10">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-slate-200 text-brand-700 text-xs font-bold uppercase tracking-wider mb-6 shadow-sm">
-              <span className="w-2 h-2 rounded-full bg-brand-600 animate-pulse" />
-              Internal Approval System
-            </div>
-            <h1 className="text-5xl md:text-7xl font-extrabold text-slate-900 mb-6 tracking-tight leading-tight">
-              Streamline your <br/>
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-sky-500">
-                showroom operations
+        <div className="absolute inset-0 bg-red-600/20 mix-blend-multiply z-0 pointer-events-none" />
+
+        <div className="max-w-7xl mx-auto relative z-10 w-full">
+          <div className="text-center max-w-4xl mx-auto mb-16">
+            <h1 className="text-6xl md:text-8xl font-extrabold text-white mb-6 tracking-tight leading-tight relative">
+              <span className="absolute -top-12 left-1/2 -translate-x-1/2 font-script text-5xl md:text-7xl text-red-300 transform -rotate-12 whitespace-nowrap opacity-90">
+                Oh Shoes
               </span>
+              Enterprise<br/>
+              Approval
             </h1>
-            <p className="text-lg md:text-xl text-slate-600 mb-10 leading-relaxed max-w-2xl mx-auto">
-              The enterprise-grade portal for managing Goods Purchase Requests and Customer Discounts with intelligent multi-level workflows.
+            <p className="text-lg md:text-xl text-white/90 mb-10 leading-relaxed max-w-2xl mx-auto">
+              The premium portal for managing Goods Purchase Requests and Customer Discounts with intelligent multi-level workflows.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link 
                 to="/login" 
-                className="w-full sm:w-auto px-8 py-4 bg-brand-600 hover:bg-brand-700 text-white rounded-full font-bold transition-all transform hover:scale-105 flex items-center justify-center gap-2 shadow-lg shadow-brand-600/30"
+                className="w-full sm:w-auto px-8 py-4 bg-white text-red-600 hover:bg-slate-100 rounded-full font-bold transition-all transform hover:scale-105 flex items-center justify-center gap-2 shadow-xl"
               >
                 Employee Login
                 <ArrowRight className="w-5 h-5" />
@@ -96,8 +98,8 @@ export default function Landing() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-slate-200 py-8 text-center mt-12 bg-white">
-        <p className="text-slate-500 text-sm font-medium">
+      <footer className="border-t border-red-500 py-8 text-center bg-red-600/50 mt-12 backdrop-blur-sm z-10 relative">
+        <p className="text-white/80 text-sm font-medium">
           © {new Date().getFullYear()} Oh Shoes Enterprise. All rights reserved.
         </p>
       </footer>

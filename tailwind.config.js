@@ -6,6 +6,9 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        script: ['"Dancing Script"', 'cursive', 'Brush Script MT', 'var(--font-script)', 'sans-serif'],
+      },
       colors: {
         brand: {
           50: 'hsl(var(--brand-50))',
