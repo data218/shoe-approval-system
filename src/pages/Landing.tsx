@@ -30,6 +30,16 @@ export default function Landing() {
 
       {/* Hero Section */}
       <main className="pt-32 pb-20 px-6 relative overflow-hidden min-h-[80vh] flex items-center">
+        {/* Shopping Girl Image */}
+        <div className="absolute inset-y-0 right-0 w-full md:w-[70%] z-0 pointer-events-none opacity-90 mix-blend-luminosity">
+          <img 
+            src="/hero-girl.png" 
+            alt="Shopping" 
+            className="w-full h-full object-cover object-right-top mask-gradient"
+            style={{ WebkitMaskImage: 'linear-gradient(to right, transparent, black 30%)' }}
+          />
+        </div>
+
         {/* Background Gradients and Watermark */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full text-center pointer-events-none select-none opacity-20 z-0">
           <h1 className="text-[12rem] md:text-[20rem] font-extrabold text-black tracking-tighter leading-none">
@@ -39,19 +49,19 @@ export default function Landing() {
 
         <div className="absolute inset-0 bg-red-600/20 mix-blend-multiply z-0 pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto relative z-10 w-full">
-          <div className="text-center max-w-4xl mx-auto mb-16">
+        <div className="max-w-7xl mx-auto relative z-10 w-full flex">
+          <div className="max-w-2xl text-left mb-16 md:pl-10">
             <h1 className="text-6xl md:text-8xl font-extrabold text-white mb-6 tracking-tight leading-tight relative">
-              <span className="absolute -top-12 left-1/2 -translate-x-1/2 font-script text-5xl md:text-7xl text-red-300 transform -rotate-12 whitespace-nowrap opacity-90">
+              <span className="absolute -top-12 left-0 font-script text-5xl md:text-7xl text-red-300 transform -rotate-12 whitespace-nowrap opacity-90">
                 Oh Shoes
               </span>
               Enterprise<br/>
               Approval
             </h1>
-            <p className="text-lg md:text-xl text-white/90 mb-10 leading-relaxed max-w-2xl mx-auto">
+            <p className="text-lg md:text-xl text-white/90 mb-10 leading-relaxed max-w-xl">
               The premium portal for managing Goods Purchase Requests and Customer Discounts with intelligent multi-level workflows.
             </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <div className="flex flex-col sm:flex-row items-center justify-start gap-4">
               <Link 
                 to="/login" 
                 className="w-full sm:w-auto px-8 py-4 bg-white text-red-600 hover:bg-slate-100 rounded-full font-bold transition-all transform hover:scale-105 flex items-center justify-center gap-2 shadow-xl"
