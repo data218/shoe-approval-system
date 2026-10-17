@@ -9,7 +9,8 @@ import {
   Menu,
   Package,
   Users as UsersIcon,
-  Database
+  Database,
+  Wallet
 } from 'lucide-react';
 import { useState } from 'react';
 import ThemeSwitcher from '../components/ThemeSwitcher';
@@ -24,6 +25,7 @@ export default function MainLayout() {
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Approval Inbox', href: '/dashboard/inbox', icon: Inbox },
     { name: 'New Request', href: '/dashboard/new', icon: PlusCircle },
+    { name: 'Petty Cash Approval', href: '/dashboard/petty-cash', icon: Wallet },
     { name: 'Master Items', href: '/dashboard/items', icon: Package },
   ];
 

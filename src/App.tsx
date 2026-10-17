@@ -12,6 +12,7 @@ import NewRequest from './pages/NewRequest';
 import Items from './pages/Items';
 import Users from './pages/Users';
 import DataManagement from './pages/DataManagement';
+import PettyCash from './pages/PettyCash';
 import UpdatePassword from './pages/UpdatePassword';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -56,6 +57,7 @@ function AppRoutes() {
         <Route index element={<Dashboard />} />
         <Route path="inbox" element={<Inbox />} />
         <Route path="new" element={<NewRequest />} />
+        <Route path="petty-cash" element={<PettyCash />} />
         <Route path="items" element={<Items />} />
         <Route path="users" element={<Users />} />
         <Route path="data" element={<DataManagement />} />
