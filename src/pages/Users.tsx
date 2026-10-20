@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { createClient } from '@supabase/supabase-js';
 import { useAuth } from '../contexts/AuthContext';
-import { Shield, ShieldAlert, ShieldCheck, Users as UsersIcon, UserCheck, Search, AlertCircle, RefreshCw, Pencil, Trash2, X, Key, Plus } from 'lucide-react';
+import { Shield, ShieldAlert, ShieldCheck, Users as UsersIcon, UserCheck, Search, AlertCircle, RefreshCw, Pencil, Trash2, X, Key, Plus, Eye, EyeOff } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 import { Pagination } from '../components/Pagination';
 
@@ -52,16 +52,17 @@ export default function Users() {
   });
   const [createLoading, setCreateLoading] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
-
-  if (profile && profile.role !== 'ADMIN') {
-    return <Navigate to="/dashboard" replace />;
-  }
+  const [showCreatePassword, setShowCreatePassword] = useState(false);
 
   useEffect(() => {
     if (profile?.role === 'ADMIN') {
       fetchUsers();
     }
   }, [profile]);
+
+  if (profile && profile.role !== 'ADMIN') {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   const fetchUsers = async () => {
     try {
@@ -193,28 +194,30 @@ export default function Users() {
 
       if (authError) throw authError;
 
-      if (authData.user) {
-        // 2. Insert profile using main client
-        const { error: profileError } = await supabase.from('shoe_profiles').insert([
-          {
-            id: authData.user.id,
-            full_name: createForm.full_name,
-            employee_code: createForm.employee_code,
-            department: createForm.department || 'Sales',
-            role: createForm.role,
-            showroom_location: 'Main Branch'
-          }
-        ]);
-
-        if (profileError) {
-          throw new Error('User created in Auth, but Profile creation failed. Please ensure Admins have INSERT permissions in RLS on shoe_profiles. Error: ' + profileError.message);
-        }
-
-        // 3. Success! Refresh users list
-        await fetchUsers();
-        setCreateModalOpen(false);
-        setCreateForm({ email: '', password: '', full_name: '', employee_code: '', department: '', role: 'REQUESTER' });
+      if (!authData.user) {
+        throw new Error('Supabase did not return a user. Please try again.');
       }
+
+      // 2. Insert profile via a SECURITY DEFINER RPC so an admin can create a
+      //    profile for a different user (the plain insert is blocked by RLS).
+      const { error: profileError } = await supabase.rpc('shoe_admin_create_profile', {
+        p_id: authData.user.id,
+        p_full_name: createForm.full_name,
+        p_employee_code: createForm.employee_code,
+        p_department: createForm.department || 'Sales',
+        p_showroom_location: 'Main Branch',
+        p_role: createForm.role
+      });
+
+      if (profileError) {
+        throw new Error('User created in Auth, but Profile creation failed. Run the admin_create_profile migration. Error: ' + profileError.message);
+      }
+
+      // 3. Success! Refresh users list
+      await fetchUsers();
+      setCreateModalOpen(false);
+      setShowCreatePassword(false);
+      setCreateForm({ email: '', password: '', full_name: '', employee_code: '', department: '', role: 'REQUESTER' });
     } catch (err: any) {
       console.error(err);
       setCreateError(err.message || 'Failed to create user');
@@ -550,14 +553,24 @@ export default function Users() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
-                  <input
-                    type="password"
-                    required
-                    minLength={6}
-                    value={createForm.password}
-                    onChange={(e) => setCreateForm({...createForm, password: e.target.value})}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showCreatePassword ? 'text' : 'password'}
+                      required
+                      minLength={6}
+                      value={createForm.password}
+                      onChange={(e) => setCreateForm({...createForm, password: e.target.value})}
+                      className="w-full px-3 py-2 pr-10 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowCreatePassword(!showCreatePassword)}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+                      title={showCreatePassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showCreatePassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
