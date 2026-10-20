@@ -1,23 +1,9 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { createClient } from '@supabase/supabase-js';
 import { useAuth } from '../contexts/AuthContext';
 import { Shield, ShieldAlert, ShieldCheck, Users as UsersIcon, UserCheck, Search, AlertCircle, RefreshCw, Pencil, Trash2, X, Key, Plus, Eye, EyeOff } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 import { Pagination } from '../components/Pagination';
-
-// Create a secondary client specifically for admin user creation so it doesn't log the admin out
-const adminAuthClient = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY,
-  {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-      detectSessionInUrl: false
-    }
-  }
-);
 
 export default function Users() {
   const { profile } = useAuth();
@@ -186,31 +172,32 @@ export default function Users() {
     setCreateError(null);
 
     try {
-      // 1. Create auth user using secondary client (won't log out admin)
-      const { data: authData, error: authError } = await adminAuthClient.auth.signUp({
-        email: createForm.email,
-        password: createForm.password,
+      // Create the auth user + profile server-side via an Edge Function that
+      // holds the service-role key. This also heals accounts that already
+      // exist in auth.users but have no profile row.
+      const { data, error: fnError } = await supabase.functions.invoke('admin-create-user', {
+        body: {
+          email: createForm.email,
+          password: createForm.password,
+          full_name: createForm.full_name,
+          employee_code: createForm.employee_code,
+          department: createForm.department || 'Sales',
+          showroom_location: 'Main Branch',
+          role: createForm.role,
+        },
       });
 
-      if (authError) throw authError;
-
-      if (!authData.user) {
-        throw new Error('Supabase did not return a user. Please try again.');
+      if (fnError) {
+        let message = fnError.message;
+        const ctx: any = (fnError as any).context;
+        if (ctx && typeof ctx.json === 'function') {
+          const parsed = await ctx.json().catch(() => null);
+          if (parsed?.error) message = parsed.error;
+        }
+        throw new Error(message);
       }
-
-      // 2. Insert profile via a SECURITY DEFINER RPC so an admin can create a
-      //    profile for a different user (the plain insert is blocked by RLS).
-      const { error: profileError } = await supabase.rpc('shoe_admin_create_profile', {
-        p_id: authData.user.id,
-        p_full_name: createForm.full_name,
-        p_employee_code: createForm.employee_code,
-        p_department: createForm.department || 'Sales',
-        p_showroom_location: 'Main Branch',
-        p_role: createForm.role
-      });
-
-      if (profileError) {
-        throw new Error('User created in Auth, but Profile creation failed. Run the admin_create_profile migration. Error: ' + profileError.message);
+      if ((data as any)?.error) {
+        throw new Error((data as any).error);
       }
 
       // 3. Success! Refresh users list
