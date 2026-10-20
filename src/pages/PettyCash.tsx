@@ -16,6 +16,7 @@ import {
   outstandingAmount,
   formatCurrency,
   formatDate,
+  waitingDuration,
   canActAtStage,
   canRecordPayment,
   isManagement,
@@ -637,12 +638,13 @@ export default function PettyCash() {
                   <tr className="bg-gradient-to-r from-brand-600 to-purple-600 text-white text-xs uppercase tracking-wider font-bold">
                     <th className="px-4 py-3 rounded-tl-lg whitespace-nowrap">Request ID</th>
                     <th className="px-4 py-3 whitespace-nowrap">Date</th>
+                    <th className="px-4 py-3 whitespace-nowrap">Waiting Duration</th>
                     <th className="px-4 py-3 whitespace-nowrap">Branch</th>
                     <th className="px-4 py-3 whitespace-nowrap">Employee</th>
                     <th className="px-4 py-3 whitespace-nowrap">Department</th>
                     <th className="px-4 py-3 whitespace-nowrap">Category</th>
                     <th className="px-4 py-3 whitespace-nowrap">Description</th>
-                    <th className="px-4 py-3 whitespace-nowrap text-right">Requested</th>
+                    <th className="px-4 py-3 whitespace-nowrap text-right">Requested Amount</th>
                     <th className="px-4 py-3 whitespace-nowrap text-right">Approved</th>
                     <th className="px-4 py-3 whitespace-nowrap">Current Approver</th>
                     <th className="px-4 py-3 whitespace-nowrap text-center">Status</th>
@@ -654,6 +656,7 @@ export default function PettyCash() {
                     <tr key={r.id} className="hover:bg-slate-50/80 transition-colors">
                       <td className="px-4 py-3 font-bold text-slate-900 whitespace-nowrap">{r.request_number}</td>
                       <td className="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{formatDate(r.request_date)}</td>
+                      <td className="px-4 py-3 text-sm text-slate-600 whitespace-nowrap">{waitingDuration(r)}</td>
                       <td className="px-4 py-3 text-sm text-slate-700 whitespace-nowrap">{r.branch || '-'}</td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="text-sm font-semibold text-slate-800">{r.employee?.full_name || '-'}</div>

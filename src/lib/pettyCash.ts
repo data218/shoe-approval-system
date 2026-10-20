@@ -193,6 +193,27 @@ export function formatDate(value: string | null | undefined): string {
   return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
+export function formatDuration(ms: number): string {
+  if (!isFinite(ms) || ms < 0) ms = 0;
+  const totalMinutes = Math.floor(ms / 60000);
+  const days = Math.floor(totalMinutes / 1440);
+  const hours = Math.floor((totalMinutes % 1440) / 60);
+  const minutes = totalMinutes % 60;
+  if (days > 0) return `${days}d ${hours}h`;
+  if (hours > 0) return `${hours}h ${minutes}m`;
+  return `${minutes}m`;
+}
+
+// Time the request has been in flight: from submission until it is closed
+// (rejected/settled) or, while still open, until now.
+export function waitingDuration(r: Pick<PettyCashRequest, 'created_at' | 'updated_at' | 'status'>): string {
+  const start = new Date(r.created_at).getTime();
+  if (isNaN(start)) return '-';
+  const closed = r.status === 'REJECTED' || r.status === 'SETTLED';
+  const end = closed ? new Date(r.updated_at).getTime() : Date.now();
+  return formatDuration((isNaN(end) ? Date.now() : end) - start);
+}
+
 export function outstandingAmount(r: PettyCashRequest): number {
   const approved = r.approved_amount ?? r.requested_amount;
   return Math.max(approved - (r.paid_amount || 0), 0);
