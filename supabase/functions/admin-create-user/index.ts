@@ -62,10 +62,18 @@ Deno.serve(async (req) => {
       if (!/already|registered|exists/i.test(createError.message)) {
         return json({ error: createError.message }, 400);
       }
-      // Find the existing auth account by email.
-      const { data: list, error: listError } = await admin.auth.admin.listUsers();
-      if (listError) return json({ error: listError.message }, 400);
-      const existing = list.users.find((u) => u.email?.toLowerCase() === String(email).toLowerCase());
+      // Find the existing auth account by email. Paginate through all
+      // users — the default page size is 50 and the account may be older.
+      const target = String(email).toLowerCase();
+      let page = 1;
+      let existing: { id: string } | undefined;
+      for (;;) {
+        const { data: list, error: listError } = await admin.auth.admin.listUsers({ page, perPage: 1000 });
+        if (listError) return json({ error: listError.message }, 400);
+        existing = list.users.find((u) => u.email?.toLowerCase() === target);
+        if (existing || list.users.length < 1000) break;
+        page += 1;
+      }
       if (!existing) return json({ error: createError.message }, 400);
       userId = existing.id;
 

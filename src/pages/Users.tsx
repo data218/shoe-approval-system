@@ -172,29 +172,21 @@ export default function Users() {
     setCreateError(null);
 
     try {
-      // Create the auth user + profile server-side via an Edge Function that
-      // holds the service-role key. This also heals accounts that already
+      // Create the auth user + profile server-side via a SECURITY DEFINER
+      // SQL RPC (shoe_admin_create_user). It also heals accounts that already
       // exist in auth.users but have no profile row.
-      const { data, error: fnError } = await supabase.functions.invoke('admin-create-user', {
-        body: {
-          email: createForm.email,
-          password: createForm.password,
-          full_name: createForm.full_name,
-          employee_code: createForm.employee_code,
-          department: createForm.department || 'Sales',
-          showroom_location: 'Main Branch',
-          role: createForm.role,
-        },
+      const { data, error: rpcError } = await supabase.rpc('shoe_admin_create_user', {
+        p_email: createForm.email,
+        p_password: createForm.password,
+        p_full_name: createForm.full_name,
+        p_employee_code: createForm.employee_code,
+        p_department: createForm.department || 'Sales',
+        p_showroom_location: 'Main Branch',
+        p_role: createForm.role,
       });
 
-      if (fnError) {
-        let message = fnError.message;
-        const ctx: any = (fnError as any).context;
-        if (ctx && typeof ctx.json === 'function') {
-          const parsed = await ctx.json().catch(() => null);
-          if (parsed?.error) message = parsed.error;
-        }
-        throw new Error(message);
+      if (rpcError) {
+        throw new Error(rpcError.message);
       }
       if ((data as any)?.error) {
         throw new Error((data as any).error);
