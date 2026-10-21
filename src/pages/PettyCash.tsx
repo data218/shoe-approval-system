@@ -492,8 +492,9 @@ export default function PettyCash() {
         </div>
         <div className="flex items-center gap-3">
           <button
-            onClick={fetchAll}
-            className="p-2.5 text-slate-400 hover:text-brand-600 bg-white rounded-xl border border-slate-200 shadow-sm transition-colors"
+            onClick={async () => { await fetchAll(); }}
+            disabled={loading}
+            className="p-2.5 text-slate-400 hover:text-brand-600 bg-white rounded-xl border border-slate-200 shadow-sm transition-colors disabled:opacity-50"
             title="Refresh"
           >
             <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
@@ -678,7 +679,7 @@ export default function PettyCash() {
                         {r.approved_amount != null ? formatCurrency(r.approved_amount) : '-'}
                       </td>
                       <td className="px-4 py-3 text-sm text-slate-600 whitespace-nowrap">
-                        {r.current_stage ? STAGE_META[r.current_stage]?.short || r.current_stage : '-'}
+                        {r.current_stage ? STAGE_META[r.current_stage]?.approverRole || STAGE_META[r.current_stage]?.short || r.current_stage : '-'}
                       </td>
                       <td className="px-4 py-3 text-center">
                         <StatusBadge status={r.status} />
