@@ -123,8 +123,7 @@ export function canActAtStage(
   switch (stage) {
     case 'MANAGER':
       return r === 'L1_APPROVER' || MANAGEMENT_ROLES.includes(r);
-    case 'ACCOUNTS':
-      return MANAGEMENT_ROLES.includes(role);
+
     case 'EA':
       // Allow any role that includes 'L2' (e.g., L2_APPROVER) to act at EA stage
       return ['L2_APPROVER', ...MANAGEMENT_ROLES].includes(role) || (typeof role === 'string' && role.includes('L2'));
