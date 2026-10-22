@@ -325,15 +325,45 @@ export async function createPettyCashRequest(
   return request;
 }
 
+// Helper to fetch approver email based on stage (L1 or L2)
+async function getApproverEmail(stage: PettyCashStage | null): Promise<string | null> {
+  // Map stages to role identifiers
+  const roleMap: Record<string, string> = {
+    MANAGER: 'L1_APPROVER',
+    EA: 'L2_APPROVER',
+    ACCOUNTS: 'ACCOUNT_APPROVER',
+    MANAGEMENT: 'MANAGEMENT_APPROVER',
+    PAYMENT: 'PAYMENT_APPROVER',
+  };
+  const role = stage ? roleMap[stage] : null;
+  if (!role) return null;
+  // Query the shoe_profiles (or users) table for the email of the given role
+  const { data, error } = await supabase
+    .from('shoe_profiles')
+    .select('email')
+    .eq('role', role)
+    .maybeSingle();
+  if (error) {
+    console.warn('Error fetching approver email for role', role, error);
+    return null;
+  }
+  return (data as any)?.email || null;
+}
+
 // Simple email notification helper (mailto link)
 async function notifyApprover(request: PettyCashRequest): Promise<void> {
-  // TODO: Replace with actual approver email lookup logic
-  const approverEmail = 'approver@example.com';
+  // Determine the approver email based on the request's current stage
+  const approverEmail = await getApproverEmail(request.current_stage);
+  if (!approverEmail) {
+    console.warn('No approver email found for stage', request.current_stage);
+    return;
+  }
   const subject = `Petty Cash Request ${request.request_number} requires approval`;
   const link = `${window.location.origin}/dashboard?request=${request.id}`;
   const body = `Please review and approve the request using the following link:\n${link}`;
   window.location.href = `mailto:${encodeURIComponent(approverEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
+
 
 export async function updatePettyCashRequest(
   id: string,
