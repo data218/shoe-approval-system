@@ -107,7 +107,8 @@ export interface PettyCashSettings {
 const MANAGEMENT_ROLES = ['ADMIN', 'NARENDRA', 'SANJEEV'];
 
 export function isManagement(role: string | null | undefined): boolean {
-  return !!role && MANAGEMENT_ROLES.includes(role);
+  const r = (role ?? '').toUpperCase();
+  return !!role && MANAGEMENT_ROLES.includes(r);
 }
 
 export function canActAtStage(
@@ -117,7 +118,7 @@ export function canActAtStage(
   if (!role || !stage) return false;
   switch (stage) {
     case 'MANAGER':
-      return ['L1_APPROVER', ...MANAGEMENT_ROLES].includes(role);
+      return r === 'L1_APPROVER' || MANAGEMENT_ROLES.includes(r);
     case 'ACCOUNTS':
       return MANAGEMENT_ROLES.includes(role);
     case 'EA':

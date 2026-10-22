@@ -460,7 +460,7 @@ export default function PettyCash() {
   };
 
   const role = profile?.role || null;
-  const isL2 = role?.toUpperCase().includes('L2') ?? false;
+
   const isMgmt = isManagement(role);
   const canApprove = selected
     ? PENDING_STATUSES.includes(selected.status) &&

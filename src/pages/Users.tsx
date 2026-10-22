@@ -217,6 +217,7 @@ export default function Users() {
       case 'ADMIN': return <span className="inline-flex items-center gap-1 bg-purple-100 text-purple-800 px-2 py-1 rounded-md text-xs font-bold border border-purple-200"><ShieldAlert className="w-3 h-3" /> Admin</span>;
       case 'L1_APPROVER': return <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-800 px-2 py-1 rounded-md text-xs font-bold border border-amber-200"><Shield className="w-3 h-3" /> Level 1</span>;
       case 'L2_APPROVER': return <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-xs font-bold border border-blue-200"><ShieldCheck className="w-3 h-3" /> Level 2</span>;
+      case 'ACCOUNT': return <span className="inline-flex items-center gap-1 bg-green-100 text-green-800 px-2 py-1 rounded-md text-xs font-bold border border-green-200"><Banknote className="w-3 h-3" /> Accounts</span>;
       default: return <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-600 px-2 py-1 rounded-md text-xs font-bold border border-slate-200"><UserCheck className="w-3 h-3" /> Requester</span>;
     }
   };
@@ -305,6 +306,7 @@ export default function Users() {
                           <option value="REQUESTER">Requester</option>
                           <option value="L1_APPROVER">Level 1 Approver</option>
                           <option value="L2_APPROVER">Level 2 Approver</option>
+                          <option value="ACCOUNT">Accounts</option>
                           <option value="ADMIN">Admin</option>
                         </select>
                         {updateLoading === u.id && (
@@ -581,6 +583,7 @@ export default function Users() {
                     <option value="REQUESTER">Requester</option>
                     <option value="L1_APPROVER">Level 1 Approver</option>
                     <option value="L2_APPROVER">Level 2 Approver</option>
+                    <option value="ACCOUNT">Accounts</option>
                     <option value="ADMIN">Admin</option>
                   </select>
                 </div>
