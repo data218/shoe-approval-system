@@ -460,16 +460,14 @@ export default function PettyCash() {
   };
 
   const role = profile?.role || null;
-  // Determine if the user can approve the selected request.
-  // L2 approvers should also be able to act when the request is at the EA or ACCOUNTS stage.
   const effectiveStage = selected?.current_stage;
-  const roleCanAct = canActAtStage(role, effectiveStage);
-  // Allow L2 to act on EA and ACCOUNTS stages
-  const l2CanActOnEAOrAccounts = role?.includes('L2') && (effectiveStage === 'EA' || effectiveStage === 'ACCOUNTS');
+  const isL2 = role?.includes('L2');
+  const isMgmt = isManagement(role);
   const canApprove = selected
-    ? (roleCanAct || l2CanActOnEAOrAccounts) &&
-      PENDING_STATUSES.includes(selected.status) &&
-      (selected.employee_id !== user?.id || isManagement(role))
+    ? PENDING_STATUSES.includes(selected.status) &&
+      (effectiveStage === 'EA' || effectiveStage === 'ACCOUNTS') &&
+      (isMgmt || isL2) &&
+      (selected.employee_id !== user?.id || isMgmt)
     : false;
   const isOwner = !!selected && selected.employee_id === user?.id;
   const canEdit = isOwner && selected?.status === 'RETURNED';
