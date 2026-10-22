@@ -658,7 +658,7 @@ export default function PettyCash() {
                       <td className="px-4 py-3 font-bold text-slate-900 whitespace-nowrap">{r.request_number}</td>
                       <td className="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{formatDate(r.request_date)}</td>
                       <td className="px-4 py-3 text-sm text-slate-600 whitespace-nowrap">{waitingDuration(r)}</td>
-                      <td className="px-4 py-3 text-sm text-slate-700 whitespace-nowrap">{r.branch || '-'}</td>
+                      <td className="px-4 py-3 text-sm text-slate-700 whitespace-nowrap">{r.branch && !r.branch.includes('@') ? r.branch : (profile?.showroom_location || '-')}</td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="text-sm font-semibold text-slate-800">{r.employee?.full_name || '-'}</div>
                         <div className="text-xs text-slate-400">{r.employee?.employee_code}</div>

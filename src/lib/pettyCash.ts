@@ -315,7 +315,24 @@ export async function createPettyCashRequest(
     p_attachments: payload.attachments ?? [],
   });
   if (error) throw error;
-  return data as PettyCashRequest;
+  const request = data as PettyCashRequest;
+  // Notify the initial approver (e.g., Manager) via email
+  try {
+    await notifyApprover(request);
+  } catch (e) {
+    console.warn('Failed to send approver notification:', e);
+  }
+  return request;
+}
+
+// Simple email notification helper (mailto link)
+async function notifyApprover(request: PettyCashRequest): Promise<void> {
+  // TODO: Replace with actual approver email lookup logic
+  const approverEmail = 'approver@example.com';
+  const subject = `Petty Cash Request ${request.request_number} requires approval`;
+  const link = `${window.location.origin}/dashboard?request=${request.id}`;
+  const body = `Please review and approve the request using the following link:\n${link}`;
+  window.location.href = `mailto:${encodeURIComponent(approverEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
 export async function updatePettyCashRequest(
