@@ -17,8 +17,8 @@ import {
   formatCurrency,
   formatDate,
   waitingDuration,
-  canActAtStage,
   canRecordPayment,
+  canActAtStage,
   isManagement,
   STAGE_META,
   STATUS_META,
@@ -464,7 +464,7 @@ export default function PettyCash() {
   const isMgmt = isManagement(role);
   const canApprove = selected
     ? PENDING_STATUSES.includes(selected.status) &&
-      (isMgmt || isL2) &&
+      canActAtStage(role, selected.current_stage) &&
       (selected.employee_id !== user?.id || isMgmt)
     : false;
   const isOwner = !!selected && selected.employee_id === user?.id;
