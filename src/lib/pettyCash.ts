@@ -2,13 +2,16 @@ import { supabase } from './supabase';
 
 export const PETTY_CASH_BUCKET = 'shoe-petty-cash-receipts';
 
+
+
+export type PettyCashStage = 'MANAGER' | 'ACCOUNTS' | 'EA' | 'PAYMENT';
+
 export type PettyCashStatus =
   | 'DRAFT'
   | 'SUBMITTED'
   | 'PENDING_MANAGER'
   | 'PENDING_ACCOUNTS'
   | 'PENDING_EA'
-  | 'PENDING_MANAGEMENT'
   | 'APPROVED'
   | 'REJECTED'
   | 'RETURNED'
@@ -16,7 +19,7 @@ export type PettyCashStatus =
   | 'PARTIALLY_PAID'
   | 'SETTLED';
 
-export type PettyCashStage = 'MANAGER' | 'ACCOUNTS' | 'EA' | 'MANAGEMENT' | 'PAYMENT';
+
 
 export type PettyCashDecision =
   | 'SUBMITTED'
@@ -119,8 +122,7 @@ export function canActAtStage(
       return MANAGEMENT_ROLES.includes(role);
     case 'EA':
       return ['L2_APPROVER', ...MANAGEMENT_ROLES].includes(role);
-    case 'MANAGEMENT':
-      return MANAGEMENT_ROLES.includes(role);
+// Management stage removed
     case 'PAYMENT':
       return MANAGEMENT_ROLES.includes(role);
     default:
@@ -139,7 +141,7 @@ export const STAGE_META: Record<
   MANAGER: { label: 'Reporting Manager approval', short: 'Reporting Manager', approverRole: 'L1 Approver' },
   ACCOUNTS: { label: 'Accounts verification', short: 'Accounts', approverRole: 'Accounts / Admin' },
   EA: { label: 'EA approval', short: 'EA', approverRole: 'L2 Approver' },
-  MANAGEMENT: { label: 'Management approval', short: 'Management', approverRole: 'Management' },
+
   PAYMENT: { label: 'Payment & settlement', short: 'Payment', approverRole: 'Accounts' },
 };
 
@@ -149,7 +151,7 @@ export const STATUS_META: Record<PettyCashStatus, { label: string; className: st
   PENDING_MANAGER: { label: 'Pending Manager', className: 'bg-amber-100 text-amber-800 border-amber-200' },
   PENDING_ACCOUNTS: { label: 'Pending Accounts', className: 'bg-orange-100 text-orange-800 border-orange-200' },
   PENDING_EA: { label: 'Pending EA', className: 'bg-blue-100 text-blue-800 border-blue-200' },
-  PENDING_MANAGEMENT: { label: 'Pending Management', className: 'bg-purple-100 text-purple-800 border-purple-200' },
+
   APPROVED: { label: 'Approved', className: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
   REJECTED: { label: 'Rejected', className: 'bg-red-100 text-red-800 border-red-200' },
   RETURNED: { label: 'Returned for Correction', className: 'bg-rose-100 text-rose-800 border-rose-200' },
@@ -332,7 +334,6 @@ async function getApproverEmail(stage: PettyCashStage | null): Promise<string | 
     MANAGER: 'L1_APPROVER',
     EA: 'L2_APPROVER',
     ACCOUNTS: 'ACCOUNT_APPROVER',
-    MANAGEMENT: 'MANAGEMENT_APPROVER',
     PAYMENT: 'PAYMENT_APPROVER',
   };
   const role = stage ? roleMap[stage] : null;
