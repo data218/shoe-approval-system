@@ -116,6 +116,10 @@ export function canActAtStage(
   stage: PettyCashStage | null | undefined
 ): boolean {
   if (!role || !stage) return false;
+  const r = (role ?? '').toUpperCase();
+  if (stage === 'ACCOUNTS') {
+    return r === 'ACCOUNT' || MANAGEMENT_ROLES.includes(r);
+  }
   switch (stage) {
     case 'MANAGER':
       return r === 'L1_APPROVER' || MANAGEMENT_ROLES.includes(r);

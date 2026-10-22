@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { Shield, ShieldAlert, ShieldCheck, Users as UsersIcon, UserCheck, Search, AlertCircle, RefreshCw, Pencil, Trash2, X, Key, Plus, Eye, EyeOff } from 'lucide-react';
+import { Shield, ShieldAlert, ShieldCheck, Users as UsersIcon, UserCheck, Search, AlertCircle, RefreshCw, Pencil, Trash2, X, Key, Plus, Eye, EyeOff, Banknote } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 import { Pagination } from '../components/Pagination';
 
