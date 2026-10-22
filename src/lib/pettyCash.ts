@@ -121,7 +121,8 @@ export function canActAtStage(
     case 'ACCOUNTS':
       return MANAGEMENT_ROLES.includes(role);
     case 'EA':
-      return ['L2_APPROVER', ...MANAGEMENT_ROLES].includes(role);
+      // Allow any role that includes 'L2' (e.g., L2_APPROVER) to act at EA stage
+      return ['L2_APPROVER', ...MANAGEMENT_ROLES].includes(role) || (typeof role === 'string' && role.includes('L2'));
 // Management stage removed
     case 'PAYMENT':
       return MANAGEMENT_ROLES.includes(role);
