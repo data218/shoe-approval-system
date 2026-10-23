@@ -1,7 +1,7 @@
 import ApprovalWorkflowNotice from '../components/ApprovalWorkflowNotice';
 import { useState, useEffect, useMemo } from 'react';
 import type { ChangeEvent, ComponentType, FormEvent, ReactNode } from 'react';
-import { canApproveRequest } from '../lib/approvals';
+import { canApproveRequest, hasRecordedApproval } from '../lib/approvals';
 import { useAuth } from '../contexts/AuthContext';
 import { Pagination } from '../components/Pagination';
 import {
@@ -149,6 +149,7 @@ export default function PettyCash() {
   const [history, setHistory] = useState<PettyCashHistoryEntry[]>([]);
   const [payments, setPayments] = useState<PettyCashPayment[]>([]);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState<string | null>(null);
   const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
 
   // Approval action
@@ -356,6 +357,8 @@ export default function PettyCash() {
     setPendingAction(null);
     setHistory([]);
     setPayments([]);
+    setDetailError(null);
+    setDetailLoading(true);
     setSignedUrls({});
     setPaymentForm({
       payment_amount: String(outstandingAmount(r) || ''),
@@ -381,6 +384,7 @@ export default function PettyCash() {
       setSignedUrls(urls);
     } catch (err) {
       console.error(err);
+      setDetailError('Unable to verify approval history and payments. Payment recording is unavailable until these records load successfully.');
     } finally {
       setDetailLoading(false);
     }
@@ -420,6 +424,7 @@ export default function PettyCash() {
   const submitPayment = async (e: FormEvent) => {
     e.preventDefault();
     if (!selected || !user) return;
+    if (detailLoading || detailError || !hasRecordedApproval(history.filter((entry) => entry.request_id === selected?.id))) return alert('A recorded management approval is required before payment.');
     const amount = parseFloat(paymentForm.payment_amount);
     if (!amount || amount <= 0) return alert('Payment amount must be greater than zero.');
     if (amount > outstandingAmount(selected) + 0.001) return alert('Payment exceeds the outstanding amount.');
@@ -468,7 +473,7 @@ export default function PettyCash() {
   const isOwner = !!selected && selected.employee_id === user?.id;
   const canEdit = isOwner && selected?.status === 'RETURNED';
   const canResubmit = isOwner && selected?.status === 'RETURNED';
-  const showPayment = !!selected && canRecordPayment(role) && ['APPROVED', 'PARTIALLY_PAID'].includes(selected.status);
+  const showPayment = !detailLoading && !detailError && hasRecordedApproval(history.filter((entry) => entry.request_id === selected?.id)) && !!selected && canRecordPayment(role) && ['APPROVED', 'PARTIALLY_PAID'].includes(selected.status);
 
   return (
     <div className="space-y-6 pb-12 animate-in fade-in duration-500 relative">
@@ -1003,6 +1008,8 @@ export default function PettyCash() {
                   <div className="flex justify-center py-6 text-slate-400">
                     <RefreshCw className="w-5 h-5 animate-spin" />
                   </div>
+                ) : detailError ? (
+                  <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-800">{detailError}</p>
                 ) : history.length === 0 ? (
                   <p className="text-sm text-slate-400">No history yet.</p>
                 ) : (
@@ -1055,6 +1062,12 @@ export default function PettyCash() {
                       ))}
                     </div>
                   )}
+                </div>
+              )}
+
+              {!detailLoading && !detailError && ['APPROVED','PARTIALLY_PAID'].includes(selected.status) && !hasRecordedApproval(history.filter((entry) => entry.request_id === selected?.id)) && (
+                <div role="alert" className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+                  This request is marked approved but has no approval recorded after its latest submission. Payment is blocked until an administrator reviews and corrects the request.
                 </div>
               )}
 

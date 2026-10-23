@@ -30,3 +30,10 @@ export function getRoleLabel(role: string | null | undefined): string {
   const value = getRoleOptionValue(role);
   return USER_ROLE_OPTIONS.find((option) => option.value === value)!.label;
 }
+
+/** Approval must be recorded after the latest submission/resubmission. */
+export function hasRecordedApproval(history: { decision: string; created_at: string }[]): boolean {
+  const latestSubmission = Math.max(0, ...history.filter((entry) => entry.decision === 'SUBMITTED')
+    .map((entry) => new Date(entry.created_at).getTime()));
+  return history.some((entry) => entry.decision === 'APPROVED' && new Date(entry.created_at).getTime() >= latestSubmission);
+}

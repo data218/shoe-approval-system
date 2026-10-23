@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { PGlite } from '@electric-sql/pglite';
 import { uuid_ossp } from '@electric-sql/pglite/contrib/uuid_ossp';
 import { pgcrypto } from '@electric-sql/pglite/contrib/pgcrypto';
-import { canApproveRequest, isManagement, USER_ROLE_OPTIONS, getRoleOptionValue, getRoleLabel } from '../src/lib/approvals.ts';
+import { canApproveRequest, isManagement, USER_ROLE_OPTIONS, getRoleOptionValue, getRoleLabel, hasRecordedApproval } from '../src/lib/approvals.ts';
 
 const migration = (name) => readFile(new URL(`../supabase/migrations/${name}.sql`, import.meta.url), 'utf8');
 const ids = {
@@ -84,6 +84,8 @@ async function setup() {
   await db.exec(await migration('20261026000000_single_management_approval'));
   await db.exec(await migration('20261027000000_sync_profile_emails'));
   await db.exec(await migration('20261028000000_admin_edit_user'));
+  await db.query("INSERT INTO shoe_petty_cash_requests(request_number,employee_id,created_by,expense_category,description,requested_amount,approved_amount,status,current_stage) VALUES('PC-2026-00030',$1,$1,'Utilities','Legacy inconsistency',5000,5000,'APPROVED','PAYMENT')",[ids.employee]);
+  await db.exec(await migration('20261029000000_verify_petty_cash_approval'));
 }
 
 test('single management approval: database migration and permissions', async (t) => {
@@ -270,6 +272,15 @@ test('single management approval: database migration and permissions', async (t)
       assert.equal(await scalar('SELECT email FROM auth.users WHERE id=$1',[created.id]),'edited@example.test');
       await asUser(ids.admin, () => assert.rejects(() => scalar("SELECT shoe_admin_update_user($1,'admin@example.test','Admin','admin','Sales','Main','REQUESTER')",[ids.admin]), /own administrator/));
       await asUser(ids.admin, () => db.query('SELECT shoe_admin_delete_user($1)',[created.id]));
+    });
+    await t.test('unapproved legacy request is requeued and payment requires approval evidence', async () => {
+      const r = await scalar("SELECT to_jsonb(r) FROM shoe_petty_cash_requests r WHERE request_number='PC-2026-00030'");
+      assert.equal(r.status,'PENDING_MANAGEMENT'); assert.equal(r.approved_amount,null);
+      await asUser(ids.admin, () => db.query("UPDATE shoe_petty_cash_requests SET status='APPROVED',current_stage='PAYMENT',approved_amount=5000 WHERE id=$1",[r.id]));
+      await asUser(ids.manager, () => assert.rejects(() => pay(r.id,1), /recorded management approval/));
+      assert.equal(hasRecordedApproval([]),false);
+      assert.equal(hasRecordedApproval([{decision:'APPROVED',created_at:'2026-10-20T00:00:00Z'},{decision:'SUBMITTED',created_at:'2026-10-21T00:00:00Z'}]),false);
+      assert.equal(hasRecordedApproval([{decision:'SUBMITTED',created_at:'2026-10-20T00:00:00Z'},{decision:'APPROVED',created_at:'2026-10-21T00:00:00Z'}]),true);
     });
     await t.test('client permissions match the management roles and self-approval rules', () => {
       for (const role of ['REQUESTER','L1_APPROVER','L2_APPROVER','ACCOUNT',null]) assert.equal(isManagement(role),false);
