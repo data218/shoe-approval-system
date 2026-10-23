@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { Key, Mail, AlertCircle, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 
 export default function Login() {
   const navigate = useNavigate();
+  const { accessError } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -107,10 +109,10 @@ export default function Login() {
           <div>
             <form className="space-y-6" onSubmit={handleAuth}>
               
-              {error && (
+              {(error || accessError) && (
                 <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3 shadow-sm">
                   <AlertCircle className="w-5 h-5 text-red-500 mt-0.5 shrink-0" />
-                  <div className="text-sm text-red-800">{error}</div>
+                  <div className="text-sm text-red-800">{error || accessError}</div>
                 </div>
               )}
               

@@ -16,13 +16,13 @@ const PettyCash = lazy(() => import('./pages/PettyCash'));
 const UpdatePassword = lazy(() => import('./pages/UpdatePassword'));
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { session, loading } = useAuth();
+  const { session, profile, loading } = useAuth();
   
   if (loading) {
     return <div className="flex h-screen items-center justify-center bg-slate-50">Loading...</div>;
   }
   
-  if (!session) {
+  if (!session || !profile) {
     return <Navigate to="/" replace />;
   }
 

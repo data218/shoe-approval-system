@@ -1,3 +1,4 @@
+import { isListedUser } from '../src/lib/access.ts';
 import { pendingApprovalAlerts } from '../src/lib/notificationAlerts.ts';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -41,9 +42,11 @@ async function setup() {
     CREATE SCHEMA auth; CREATE SCHEMA storage; CREATE SCHEMA extensions;
     CREATE TABLE auth.users (
       instance_id uuid, id uuid PRIMARY KEY, aud text, role text, email text,
-      encrypted_password text, email_confirmed_at timestamptz,
+      encrypted_password text, email_confirmed_at timestamptz, banned_until timestamptz,
       raw_app_meta_data jsonb, raw_user_meta_data jsonb, created_at timestamptz, updated_at timestamptz
     );
+    CREATE TABLE auth.sessions (user_id uuid);
+    CREATE TABLE auth.refresh_tokens (user_id text);
     CREATE TABLE auth.identities (
       id uuid PRIMARY KEY, user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,
       provider_id text, identity_data jsonb, provider text,
@@ -87,6 +90,7 @@ async function setup() {
   await db.exec(await migration('20261028000000_admin_edit_user'));
   await db.query("INSERT INTO shoe_petty_cash_requests(request_number,employee_id,created_by,expense_category,description,requested_amount,approved_amount,status,current_stage) VALUES('PC-2026-00030',$1,$1,'Utilities','Legacy inconsistency',5000,5000,'APPROVED','PAYMENT')",[ids.employee]);
   await db.exec(await migration('20261029000000_verify_petty_cash_approval'));
+  await db.exec(await migration('20261030000000_restrict_access_to_listed_users'));
 }
 
 test('single management approval: database migration and permissions', async (t) => {
@@ -300,6 +304,34 @@ test('single management approval: database migration and permissions', async (t)
       assert.equal(purchaseAlert[0].href,'/dashboard/inbox');
       const discountAlert = pendingApprovalAlerts('ADMIN',ids.admin,[{id:'d',display_id:'DIS-TEST',requester_id:ids.employee,status:'PENDING_MANAGEMENT',type:'DISCOUNT',created_at:'2026-10-20'}],[]);
       assert.match(discountAlert[0].message,/Discount/);
+    });
+    await t.test('unlisted Auth accounts are blocked, cannot self-enrol, and cannot access application data or create requests', async () => {
+      const outsider='00000000-0000-0000-0000-000000000099';
+      await db.query("INSERT INTO auth.users(id,email) VALUES($1,'outsider@example.test')",[outsider]);
+      assert.equal(await scalar('SELECT banned_until > now() FROM auth.users WHERE id=$1',[outsider]),true);
+      await asUser(outsider, async () => {
+        assert.equal(await scalar('SELECT shoe_is_listed_user()'),false);
+        assert.equal((await db.query('SELECT * FROM shoe_profiles')).rows.length,0);
+        await assert.rejects(() => db.query("INSERT INTO shoe_profiles(id,employee_code,role) VALUES($1,'SELF-ENROL','REQUESTER')",[outsider]), /row-level security/);
+        await assert.rejects(cash, /not in User Management/);
+        await assert.rejects(submit, /employee profile/);
+      });
+      assert.equal(isListedUser(outsider,null),false);
+      assert.equal(isListedUser(outsider,{id:ids.admin,role:'ADMIN'}),false);
+      assert.equal(isListedUser(ids.employee,{id:ids.employee,role:'REQUESTER'}),true);
+      assert.equal(isListedUser(ids.employee,{id:ids.employee,role:'UNKNOWN'}),false);
+    });
+    await t.test('Admin provisioning permits login; removing a profile bans the account and revokes sessions', async () => {
+      const created=await asUser(ids.admin,()=>scalar("SELECT shoe_admin_create_user('listed-new@example.test','TestPass1!','Listed New','LISTED-NEW','Sales','Main','REQUESTER')"));
+      assert.equal(await scalar('SELECT banned_until IS NULL FROM auth.users WHERE id=$1',[created.id]),true);
+      await asUser(created.id,async()=>{assert.equal(await scalar('SELECT shoe_is_listed_user()'),true);assert.equal((await cash()).status,'PENDING_MANAGEMENT');});
+      await db.query('INSERT INTO auth.sessions VALUES($1)',[created.id]);
+      await db.query('INSERT INTO auth.refresh_tokens VALUES($1)',[created.id]);
+      await asUser(ids.admin,()=>db.query('DELETE FROM shoe_profiles WHERE id=$1',[created.id]));
+      assert.equal(await scalar('SELECT banned_until > now() FROM auth.users WHERE id=$1',[created.id]),true);
+      assert.equal(Number(await scalar('SELECT count(*) FROM auth.sessions WHERE user_id=$1',[created.id])),0);
+      assert.equal(Number(await scalar('SELECT count(*) FROM auth.refresh_tokens WHERE user_id=$1',[created.id])),0);
+      await asUser(created.id,()=>assert.rejects(cash,/not in User Management/));
     });
     await t.test('client permissions match the management roles and self-approval rules', () => {
       for (const role of ['REQUESTER','L1_APPROVER','L2_APPROVER','ACCOUNT',null]) assert.equal(isManagement(role),false);

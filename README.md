@@ -53,3 +53,7 @@ User Management displays and searches profile emails. Apply `supabase/migrations
 ## Full user editing
 
 Apply `supabase/migrations/20261028000000_admin_edit_user.sql` to enable Admin edits of login email and optional password alongside name, employee code, department, branch and role. It also backfills profile emails from Auth. The RPC checks Admin access and updates Auth, the email identity and the employee profile atomically. Blank passwords keep the existing password; existing passwords are never retrieved by the editor. Until installed, ordinary profile/role editing remains available, while email/password changes show an explicit unavailable message.
+
+## Listed users only
+
+The app verifies the Auth user ID against the Admin-managed `shoe_profiles` list before opening protected pages. It never automatically creates employee profiles. Apply `supabase/migrations/20261030000000_restrict_access_to_listed_users.sql` for server enforcement: unlisted login accounts are blocked, self-enrolment is denied, data/storage access requires list membership, and profile removal revokes refresh sessions. Admin user creation remains supported; provisioning the employee profile permits the new account to sign in. The frontend rechecks membership on focus and every 20 seconds while active. Existing access tokens may remain cryptographically valid until expiry, but the database membership policies deny their application data access immediately after removal.
