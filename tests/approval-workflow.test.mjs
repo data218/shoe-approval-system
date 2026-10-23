@@ -1,3 +1,4 @@
+import { pendingApprovalAlerts } from '../src/lib/notificationAlerts.ts';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
@@ -281,6 +282,24 @@ test('single management approval: database migration and permissions', async (t)
       assert.equal(hasRecordedApproval([]),false);
       assert.equal(hasRecordedApproval([{decision:'APPROVED',created_at:'2026-10-20T00:00:00Z'},{decision:'SUBMITTED',created_at:'2026-10-21T00:00:00Z'}]),false);
       assert.equal(hasRecordedApproval([{decision:'SUBMITTED',created_at:'2026-10-20T00:00:00Z'},{decision:'APPROVED',created_at:'2026-10-21T00:00:00Z'}]),true);
+    });
+    await t.test('management alerts include repaired pending requests without notification rows and exclude completed or unauthorized requests', async () => {
+      const pending = await asUser(ids.employee, cash);
+      await db.query('DELETE FROM shoe_notifications WHERE message LIKE $1',['%'+pending.request_number+'%']);
+      assert.equal(Number(await scalar('SELECT count(*) FROM shoe_notifications WHERE message LIKE $1',['%'+pending.request_number+'%'])),0);
+      const rows = await asUser(ids.manager, () => db.query("SELECT id,request_number,employee_id,status,created_at FROM shoe_petty_cash_requests WHERE id=$1",[pending.id]));
+      const alerts = pendingApprovalAlerts('SANJEEV',ids.secondManager,[],rows.rows);
+      assert.equal(alerts.length,1); assert.equal(alerts[0].href,'/dashboard/petty-cash');
+      assert.equal(pendingApprovalAlerts('REQUESTER',ids.employee,[],rows.rows).length,0);
+      assert.equal(pendingApprovalAlerts('NARENDRA',ids.employee,[],rows.rows).length,0);
+      assert.equal(pendingApprovalAlerts('ADMIN',ids.employee,[],rows.rows).length,1);
+      await asUser(ids.manager, () => actCash(pending.id));
+      const approved=(await db.query('SELECT * FROM shoe_petty_cash_requests WHERE id=$1',[pending.id])).rows;
+      assert.equal(pendingApprovalAlerts('SANJEEV',ids.secondManager,[],approved).length,0);
+      const purchaseAlert = pendingApprovalAlerts('SANJEEV',ids.secondManager,[{id:'p',display_id:'PUR-TEST',requester_id:ids.employee,status:'PENDING_MANAGEMENT',type:'PURCHASE',created_at:'2026-10-20'}],[]);
+      assert.equal(purchaseAlert[0].href,'/dashboard/inbox');
+      const discountAlert = pendingApprovalAlerts('ADMIN',ids.admin,[{id:'d',display_id:'DIS-TEST',requester_id:ids.employee,status:'PENDING_MANAGEMENT',type:'DISCOUNT',created_at:'2026-10-20'}],[]);
+      assert.match(discountAlert[0].message,/Discount/);
     });
     await t.test('client permissions match the management roles and self-approval rules', () => {
       for (const role of ['REQUESTER','L1_APPROVER','L2_APPROVER','ACCOUNT',null]) assert.equal(isManagement(role),false);
