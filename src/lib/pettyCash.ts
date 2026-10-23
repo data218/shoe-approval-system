@@ -1,17 +1,17 @@
 import { supabase } from './supabase';
+import { isManagement } from './approvals';
+export { isManagement } from './approvals';
 
 export const PETTY_CASH_BUCKET = 'shoe-petty-cash-receipts';
 
 
 
-export type PettyCashStage = 'MANAGER' | 'ACCOUNTS' | 'EA' | 'PAYMENT';
+export type PettyCashStage = 'MANAGEMENT' | 'PAYMENT';
 
 export type PettyCashStatus =
   | 'DRAFT'
   | 'SUBMITTED'
-  | 'PENDING_MANAGER'
-  | 'PENDING_ACCOUNTS'
-  | 'PENDING_EA'
+  | 'PENDING_MANAGEMENT'
   | 'APPROVED'
   | 'REJECTED'
   | 'RETURNED'
@@ -104,35 +104,11 @@ export interface PettyCashSettings {
 // ---------------------------------------------------------------------------
 // Role / permission helpers
 // ---------------------------------------------------------------------------
-const MANAGEMENT_ROLES = ['ADMIN', 'NARENDRA', 'SANJEEV'];
-
-export function isManagement(role: string | null | undefined): boolean {
-  const r = (role ?? '').toUpperCase();
-  return !!role && MANAGEMENT_ROLES.includes(r);
-}
-
 export function canActAtStage(
   role: string | null | undefined,
   stage: PettyCashStage | null | undefined
 ): boolean {
-  if (!role || !stage) return false;
-  const r = (role ?? '').toUpperCase();
-  if (stage === 'ACCOUNTS') {
-    return r === 'ACCOUNT' || MANAGEMENT_ROLES.includes(r);
-  }
-  switch (stage) {
-    case 'MANAGER':
-      return r === 'L1_APPROVER' || MANAGEMENT_ROLES.includes(r);
-
-    case 'EA':
-      // Allow any role that includes 'L2' (e.g., L2_APPROVER) to act at EA stage
-      return ['L2_APPROVER', ...MANAGEMENT_ROLES].includes(role) || (typeof role === 'string' && role.includes('L2'));
-// Management stage removed
-    case 'PAYMENT':
-      return MANAGEMENT_ROLES.includes(role);
-    default:
-      return false;
-  }
+  return (stage === 'MANAGEMENT' || stage === 'PAYMENT') && isManagement(role);
 }
 
 export function canRecordPayment(role: string | null | undefined): boolean {
@@ -143,19 +119,14 @@ export const STAGE_META: Record<
   PettyCashStage,
   { label: string; short: string; approverRole: string }
 > = {
-  MANAGER: { label: 'Reporting Manager approval', short: 'Reporting Manager', approverRole: 'L1 Approver' },
-  ACCOUNTS: { label: 'Accounts verification', short: 'Accounts', approverRole: 'Accounts / Admin' },
-  EA: { label: 'EA approval', short: 'EA', approverRole: 'L2 Approver' },
-
-  PAYMENT: { label: 'Payment & settlement', short: 'Payment', approverRole: 'Accounts' },
+  MANAGEMENT: { label: 'Management approval', short: 'Management', approverRole: 'Management' },
+  PAYMENT: { label: 'Payment & settlement', short: 'Payment', approverRole: 'Management' },
 };
 
 export const STATUS_META: Record<PettyCashStatus, { label: string; className: string }> = {
   DRAFT: { label: 'Draft', className: 'bg-slate-100 text-slate-700 border-slate-200' },
   SUBMITTED: { label: 'Submitted', className: 'bg-slate-100 text-slate-700 border-slate-200' },
-  PENDING_MANAGER: { label: 'Pending Manager', className: 'bg-amber-100 text-amber-800 border-amber-200' },
-  PENDING_ACCOUNTS: { label: 'Pending Accounts', className: 'bg-orange-100 text-orange-800 border-orange-200' },
-  PENDING_EA: { label: 'Pending EA', className: 'bg-blue-100 text-blue-800 border-blue-200' },
+  PENDING_MANAGEMENT: { label: 'Pending Management', className: 'bg-amber-100 text-amber-800 border-amber-200' },
 
   APPROVED: { label: 'Approved', className: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
   REJECTED: { label: 'Rejected', className: 'bg-red-100 text-red-800 border-red-200' },
@@ -323,51 +294,7 @@ export async function createPettyCashRequest(
   });
   if (error) throw error;
   const request = data as PettyCashRequest;
-  // Notify the initial approver (e.g., Manager) via email
-  try {
-    await notifyApprover(request);
-  } catch (e) {
-    console.warn('Failed to send approver notification:', e);
-  }
   return request;
-}
-
-// Helper to fetch approver email based on stage (L1 or L2)
-async function getApproverEmail(stage: PettyCashStage | null): Promise<string | null> {
-  // Map stages to role identifiers
-  const roleMap: Record<string, string> = {
-    MANAGER: 'L1_APPROVER',
-    EA: 'L2_APPROVER',
-    ACCOUNTS: 'ACCOUNT_APPROVER',
-    PAYMENT: 'PAYMENT_APPROVER',
-  };
-  const role = stage ? roleMap[stage] : null;
-  if (!role) return null;
-  // Query the shoe_profiles (or users) table for the email of the given role
-  const { data, error } = await supabase
-    .from('shoe_profiles')
-    .select('email')
-    .eq('role', role)
-    .maybeSingle();
-  if (error) {
-    console.warn('Error fetching approver email for role', role, error);
-    return null;
-  }
-  return (data as any)?.email || null;
-}
-
-// Simple email notification helper (mailto link)
-async function notifyApprover(request: PettyCashRequest): Promise<void> {
-  // Determine the approver email based on the request's current stage
-  const approverEmail = await getApproverEmail(request.current_stage);
-  if (!approverEmail) {
-    console.warn('No approver email found for stage', request.current_stage);
-    return;
-  }
-  const subject = `Petty Cash Request ${request.request_number} requires approval`;
-  const link = `${window.location.origin}/dashboard?request=${request.id}`;
-  const body = `Please review and approve the request using the following link:\n${link}`;
-  window.location.href = `mailto:${encodeURIComponent(approverEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
 

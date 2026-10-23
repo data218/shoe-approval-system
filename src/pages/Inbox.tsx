@@ -1,3 +1,4 @@
+import ApprovalWorkflowNotice from '../components/ApprovalWorkflowNotice';
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -14,6 +15,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 
+import { isManagement, canApproveRequest } from '../lib/approvals';
 import { Pagination } from '../components/Pagination';
 
 export default function Inbox() {
@@ -32,6 +34,7 @@ export default function Inbox() {
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [remarks, setRemarks] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   useEffect(() => {
     if (profile) {
@@ -55,15 +58,10 @@ export default function Inbox() {
         `)
         .order('created_at', { ascending: false });
 
-      // Apply role-based filtering
-      if (profile?.role === 'L1_APPROVER') {
-        query = query.eq('status', 'PENDING_L1');
-      } else if (profile?.role === 'L2_APPROVER') {
-        query = query.eq('status', 'PENDING_L2');
-      } else if (profile?.role === 'REQUESTER') {
-        query = query.eq('requester_id', profile.id);
+      // Management reviews all requests; every other role sees its own.
+      if (!isManagement(profile?.role)) {
+        query = query.eq('requester_id', profile!.id);
       }
-      // ADMIN sees everything
 
       const { data, error: reqError } = await query;
       if (reqError) throw reqError;
@@ -94,6 +92,7 @@ export default function Inbox() {
     setSelectedRequest(req);
     setDetails(null);
     setRemarks('');
+    setActionError(null);
     
     try {
       setDetailsLoading(true);
@@ -127,8 +126,7 @@ export default function Inbox() {
 
   const getStatusBadge = (status: string) => {
     const map: Record<string, { label: string, classes: string, icon: any }> = {
-      'PENDING_L1': { label: 'Pending L1', classes: 'bg-amber-100 text-amber-800 border-amber-200', icon: Clock },
-      'PENDING_L2': { label: 'Pending L2', classes: 'bg-blue-100 text-blue-800 border-blue-200', icon: Clock },
+      'PENDING_MANAGEMENT': { label: 'Pending Management', classes: 'bg-amber-100 text-amber-800 border-amber-200', icon: Clock },
       'FINAL_APPROVED': { label: 'Approved', classes: 'bg-emerald-100 text-emerald-800 border-emerald-200', icon: CheckCircle },
       'REJECTED': { label: 'Rejected', classes: 'bg-red-100 text-red-800 border-red-200', icon: XCircle },
       'SENT_BACK': { label: 'Sent Back', classes: 'bg-slate-100 text-slate-800 border-slate-200', icon: RefreshCw },
@@ -156,46 +154,24 @@ export default function Inbox() {
     );
   };
 
-  const handleAction = async (actionType: 'APPROVE' | 'REJECT' | 'SEND_BACK') => {
+  const handleAction = async (actionType: 'APPROVE' | 'REJECT') => {
     if (!remarks.trim() && actionType !== 'APPROVE') {
-      alert('Remarks are mandatory for Reject and Send Back actions.');
+      setActionError('Please explain why this request is being rejected.');
       return;
     }
     
     setActionLoading(true);
+    setActionError(null);
     try {
-      let newStatus = selectedRequest.status;
-      
-      if (actionType === 'APPROVE') {
-        if (profile?.role === 'L1_APPROVER') newStatus = 'PENDING_L2';
-        else if (profile?.role === 'L2_APPROVER' || profile?.role === 'ADMIN') newStatus = 'FINAL_APPROVED';
-      } else if (actionType === 'REJECT') {
-        newStatus = 'REJECTED';
-      } else if (actionType === 'SEND_BACK') {
-        newStatus = 'SENT_BACK';
+      if (!canApproveRequest(profile?.role, selectedRequest.requester_id, user?.id)) {
+        throw new Error('Only management can approve or reject this request.');
       }
-
-      // 1. Update Request
-      const { error: updateError } = await supabase
-        .from('shoe_requests')
-        .update({ status: newStatus, updated_at: new Date().toISOString() })
-        .eq('id', selectedRequest.id);
-        
-      if (updateError) throw updateError;
-
-      // 2. Insert Audit Log
-      const { error: auditError } = await supabase
-        .from('shoe_audit_logs')
-        .insert([{
-          request_id: selectedRequest.id,
-          user_id: user!.id,
-          action: actionType,
-          previous_status: selectedRequest.status,
-          new_status: newStatus,
-          remarks: remarks
-        }]);
-
-      if (auditError) throw auditError;
+      const { error: actionError } = await supabase.rpc('shoe_request_action', {
+        p_request_id: selectedRequest.id,
+        p_action: actionType,
+        p_remarks: remarks.trim() || null,
+      });
+      if (actionError) throw actionError;
 
       // Reset and reload
       setSelectedRequest(null);
@@ -203,7 +179,7 @@ export default function Inbox() {
 
     } catch (err: any) {
       console.error(err);
-      alert('Action failed. See console.');
+      setActionError(err.message || 'Unable to save the decision. Please try again.');
     } finally {
       setActionLoading(false);
     }
@@ -233,7 +209,7 @@ export default function Inbox() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Approval Inbox</h1>
-          <p className="mt-2 text-slate-600">Review and action pending requests.</p>
+          <p className="mt-2 text-slate-600">{isManagement(profile?.role) ? 'Review requests and make the final management decision.' : 'Track your requests and management decisions.'}</p>
         </div>
         <button 
           onClick={fetchRequests}
@@ -243,6 +219,8 @@ export default function Inbox() {
           <RefreshCw className="w-5 h-5" />
         </button>
       </div>
+
+      <ApprovalWorkflowNotice />
 
       {/* Main List */}
       <div className="bg-white rounded-2xl shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] border border-slate-100 overflow-hidden">
@@ -480,8 +458,14 @@ export default function Inbox() {
               )}
             </div>
 
+            {actionError && (
+              <div role="alert" className="mx-4 mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+                {actionError}
+              </div>
+            )}
+
             {/* Action Footer */}
-            {['PENDING_L1', 'PENDING_L2'].includes(selectedRequest.status) && (
+            {selectedRequest.status === 'PENDING_MANAGEMENT' && canApproveRequest(profile?.role, selectedRequest.requester_id, user?.id) && (
               <div className="p-4 border-t border-slate-100 bg-slate-50 space-y-3">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Approval Remarks</label>
@@ -489,7 +473,7 @@ export default function Inbox() {
                     rows={2}
                     value={remarks}
                     onChange={(e) => setRemarks(e.target.value)}
-                    placeholder="Enter remarks (Mandatory for Reject/Send Back)..."
+                    placeholder="Enter remarks (Mandatory for Reject)..."
                     className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 outline-none text-sm resize-none"
                   />
                 </div>
@@ -500,13 +484,6 @@ export default function Inbox() {
                     className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-lg font-medium shadow-sm transition-colors flex justify-center items-center gap-2 disabled:opacity-50"
                   >
                     <CheckCircle className="w-5 h-5" /> Approve
-                  </button>
-                  <button
-                    disabled={actionLoading}
-                    onClick={() => handleAction('SEND_BACK')}
-                    className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-800 px-4 py-2.5 rounded-lg font-medium transition-colors flex justify-center items-center gap-2 disabled:opacity-50"
-                  >
-                    <RefreshCw className="w-5 h-5" /> Send Back
                   </button>
                   <button
                     disabled={actionLoading}

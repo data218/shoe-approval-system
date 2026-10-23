@@ -1,5 +1,7 @@
+import ApprovalWorkflowNotice from '../components/ApprovalWorkflowNotice';
 import { useState, useEffect, useMemo } from 'react';
 import type { ChangeEvent, ComponentType, FormEvent, ReactNode } from 'react';
+import { canApproveRequest } from '../lib/approvals';
 import { useAuth } from '../contexts/AuthContext';
 import { Pagination } from '../components/Pagination';
 import {
@@ -19,7 +21,6 @@ import {
   waitingDuration,
   canRecordPayment,
   canActAtStage,
-  isManagement,
   STAGE_META,
   STATUS_META,
   EXPENSE_CATEGORIES,
@@ -55,9 +56,7 @@ import {
 } from 'lucide-react';
 
 const PENDING_STATUSES: PettyCashStatus[] = [
-  'PENDING_MANAGER',
-  'PENDING_ACCOUNTS',
-  'PENDING_EA',
+  'PENDING_MANAGEMENT',
 ];
 const APPROVED_STATUSES: PettyCashStatus[] = ['APPROVED', 'PAID', 'PARTIALLY_PAID', 'SETTLED'];
 
@@ -461,11 +460,10 @@ export default function PettyCash() {
 
   const role = profile?.role || null;
 
-  const isMgmt = isManagement(role);
   const canApprove = selected
     ? PENDING_STATUSES.includes(selected.status) &&
       canActAtStage(role, selected.current_stage) &&
-      (selected.employee_id !== user?.id || isMgmt)
+      canApproveRequest(role, selected.employee_id, user?.id)
     : false;
   const isOwner = !!selected && selected.employee_id === user?.id;
   const canEdit = isOwner && selected?.status === 'RETURNED';
@@ -508,6 +506,8 @@ export default function PettyCash() {
           </button>
         </div>
       </div>
+
+      <ApprovalWorkflowNotice payment />
 
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3 text-red-700">

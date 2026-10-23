@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { Shield, ShieldAlert, ShieldCheck, Users as UsersIcon, UserCheck, Search, AlertCircle, RefreshCw, Pencil, Trash2, X, Key, Plus, Eye, EyeOff, Banknote } from 'lucide-react';
+import { ShieldAlert, Users as UsersIcon, UserCheck, Search, AlertCircle, RefreshCw, Pencil, Trash2, X, Key, Plus, Eye, EyeOff } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 import { Pagination } from '../components/Pagination';
 
@@ -95,16 +95,14 @@ export default function Users() {
     try {
       setUpdateLoading(userId);
       const { error } = await supabase
-        .from('shoe_profiles')
-        .delete()
-        .eq('id', userId);
+        .rpc('shoe_admin_delete_user', { p_user_id: userId });
 
       if (error) throw error;
       
       setUsers(users.filter(u => u.id !== userId));
     } catch (err: any) {
       console.error(err);
-      alert('Failed to delete user. Ensure you have the proper Admin Delete RLS policies.');
+      alert('Failed to remove user: ' + (err.message || 'Unknown error'));
     } finally {
       setUpdateLoading(null);
     }
@@ -215,9 +213,8 @@ export default function Users() {
   const getRoleBadge = (role: string) => {
     switch (role) {
       case 'ADMIN': return <span className="inline-flex items-center gap-1 bg-purple-100 text-purple-800 px-2 py-1 rounded-md text-xs font-bold border border-purple-200"><ShieldAlert className="w-3 h-3" /> Admin</span>;
-      case 'L1_APPROVER': return <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-800 px-2 py-1 rounded-md text-xs font-bold border border-amber-200"><Shield className="w-3 h-3" /> Level 1</span>;
-      case 'L2_APPROVER': return <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-xs font-bold border border-blue-200"><ShieldCheck className="w-3 h-3" /> Level 2</span>;
-      case 'ACCOUNT': return <span className="inline-flex items-center gap-1 bg-green-100 text-green-800 px-2 py-1 rounded-md text-xs font-bold border border-green-200"><Banknote className="w-3 h-3" /> Accounts</span>;
+      case 'NARENDRA':
+      case 'SANJEEV': return <span className="text-sm font-semibold text-brand-700">Management ({role})</span>;
       default: return <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-600 px-2 py-1 rounded-md text-xs font-bold border border-slate-200"><UserCheck className="w-3 h-3" /> Requester</span>;
     }
   };
@@ -304,10 +301,9 @@ export default function Users() {
                           className="pl-3 pr-8 py-1.5 border border-slate-300 rounded-lg text-sm bg-white hover:bg-slate-50 focus:ring-2 focus:ring-brand-500 outline-none disabled:opacity-50 appearance-none font-medium text-slate-700"
                         >
                           <option value="REQUESTER">Requester</option>
-                          <option value="L1_APPROVER">Level 1 Approver</option>
-                          <option value="L2_APPROVER">Level 2 Approver</option>
-                          <option value="ACCOUNT">Accounts</option>
-                          <option value="ADMIN">Admin</option>
+                          <option value="NARENDRA">Management (Narendra)</option>
+                          <option value="SANJEEV">Management (Sanjeev)</option>
+                          <option value="ADMIN">Admin / Management</option>
                         </select>
                         {updateLoading === u.id && (
                           <RefreshCw className="w-4 h-4 text-brand-500 animate-spin absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -335,9 +331,9 @@ export default function Users() {
                         </button>
                         <button
                           onClick={() => handleDeleteUser(u.id, u.full_name)}
-                          disabled={updateLoading === u.id}
+                          disabled={updateLoading === u.id || u.id === profile?.id}
                           className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
-                          title="Delete User"
+                          title={u.id === profile?.id ? "You cannot remove your own administrator account" : "Remove user and login access"}
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -581,10 +577,9 @@ export default function Users() {
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
                   >
                     <option value="REQUESTER">Requester</option>
-                    <option value="L1_APPROVER">Level 1 Approver</option>
-                    <option value="L2_APPROVER">Level 2 Approver</option>
-                    <option value="ACCOUNT">Accounts</option>
-                    <option value="ADMIN">Admin</option>
+                    <option value="NARENDRA">Management (Narendra)</option>
+                    <option value="SANJEEV">Management (Sanjeev)</option>
+                    <option value="ADMIN">Admin / Management</option>
                   </select>
                 </div>
               </div>

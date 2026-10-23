@@ -151,7 +151,7 @@ export default function NotificationsDropdown() {
                     </span>
                     {notif.request_id && (
                       <Link 
-                        to={`/inbox`} 
+                        to={`/dashboard/inbox`}
                         onClick={() => setIsOpen(false)}
                         className="text-xs text-brand-600 font-medium hover:underline"
                       >

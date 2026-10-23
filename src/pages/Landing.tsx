@@ -54,7 +54,7 @@ export default function Landing() {
                 </span>
               </h1>
               <p className="text-lg md:text-xl text-slate-600 mb-10 leading-relaxed max-w-2xl mx-auto">
-                The enterprise-grade portal for managing Goods Purchase Requests and Customer Discounts with intelligent multi-level workflows.
+                The enterprise-grade portal for managing Goods Purchase Requests and Customer Discounts with a single management approval.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <Link 
@@ -73,9 +73,9 @@ export default function Landing() {
                 <div className="w-12 h-12 rounded-xl bg-sky-50 flex items-center justify-center mb-4 border border-sky-100">
                   <CheckCircle className="w-6 h-6 text-sky-600" />
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-2">Multi-Level Approvals</h3>
+                <h3 className="text-xl font-bold text-slate-900 mb-2">Management Approval</h3>
                 <p className="text-slate-600 text-sm leading-relaxed">
-                  Automated routing from Employees to Managers and Final Approvers with full accountability.
+                  Anyone can submit a request. One management approval completes the approval workflow.
                 </p>
               </div>
 
@@ -172,7 +172,7 @@ export default function Landing() {
               Approval
             </h1>
             <p className="text-lg md:text-xl text-white/90 mb-10 leading-relaxed max-w-xl">
-              The premium portal for managing Goods Purchase Requests and Customer Discounts with intelligent multi-level workflows.
+              The premium portal for managing Goods Purchase Requests and Customer Discounts with a single management approval.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-start gap-4">
               <Link 
