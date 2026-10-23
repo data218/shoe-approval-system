@@ -13,6 +13,7 @@ const Items = lazy(() => import('./pages/Items'));
 const Users = lazy(() => import('./pages/Users'));
 const DataManagement = lazy(() => import('./pages/DataManagement'));
 const PettyCash = lazy(() => import('./pages/PettyCash'));
+const MyAccount = lazy(() => import('./pages/MyAccount'));
 const UpdatePassword = lazy(() => import('./pages/UpdatePassword'));
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -55,6 +56,7 @@ function AppRoutes() {
         </ProtectedRoute>
       }>
         <Route index element={<Dashboard />} />
+        <Route path="account" element={<MyAccount />} />
         <Route path="inbox" element={<Inbox />} />
         <Route path="new" element={<NewRequest />} />
         <Route path="petty-cash" element={<PettyCash />} />

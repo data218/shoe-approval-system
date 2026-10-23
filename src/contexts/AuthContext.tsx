@@ -58,7 +58,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setAccessError(null); setLoading(false);
         if (recoveryPending) {
           recoveryPending = false;
-          window.location.assign('/update-password');
+          if (window.location.pathname !== '/update-password') {
+            window.history.replaceState(window.history.state, '', '/update-password');
+            window.dispatchEvent(new PopStateEvent('popstate'));
+          }
         }
       } catch {
         if (!active || current !== version) return;

@@ -1,3 +1,4 @@
+import { requestRecoveryLink } from '../lib/passwordRecovery';
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -117,16 +118,15 @@ export default function Users() {
   };
 
   const handleAdminResetPassword = async () => {
-    if (!resetModalEmail || !resetModalUser) return;
+    if (!resetModalUser) return;
 
     try {
       setUpdateLoading(resetModalUser.id);
-      const { error } = await supabase.auth.resetPasswordForEmail(resetModalEmail, {
-        redirectTo: `${window.location.origin}/update-password`,
-      });
-
-      if (error) throw error;
-      alert(`Password reset link sent to ${resetModalEmail}`);
+      const { data: currentUser, error: profileError } = await supabase.from('shoe_profiles')
+        .select('email').eq('id', resetModalUser.id).single();
+      if (profileError || !currentUser?.email) throw new Error('This user has no saved login email. Update their email before sending a reset link.');
+      await requestRecoveryLink(supabase.auth, currentUser.email, window.location.origin);
+      setRoleMessage(`Password reset link requested for ${currentUser.email}. Delivery must be confirmed in their inbox.`);
       setResetModalUser(null);
       setResetModalEmail('');
     } catch (err: any) {
@@ -373,7 +373,7 @@ export default function Users() {
                     {u.id !== profile?.id && (
                       <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
-                          onClick={() => setResetModalUser(u)}
+                          onClick={() => { setResetModalUser(u); setResetModalEmail(u.email || ''); }}
                           disabled={updateLoading === u.id}
                           className="p-1.5 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors disabled:opacity-50"
                           title="Reset Password"
@@ -495,14 +495,14 @@ export default function Users() {
             
             <div className="p-6 space-y-4">
               <p className="text-sm text-slate-600 mb-4">
-                Enter the email address for <span className="font-semibold">{resetModalUser.full_name}</span> to send them a secure password reset link.
+                Send a secure password reset link to the saved login email for <span className="font-semibold">{resetModalUser.full_name}</span>.
               </p>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">User's Email Address</label>
                 <input
                   type="email"
                   value={resetModalEmail}
-                  onChange={(e) => setResetModalEmail(e.target.value)}
+                  readOnly
                   placeholder="e.g. user@amgroupind.com"
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
                   autoFocus

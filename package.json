@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "test:approval": "node --test tests/approval-workflow.test.mjs"
+    "test:approval": "node --test tests/approval-workflow.test.mjs",
+    "test:password": "node --test tests/password-recovery.test.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.2",

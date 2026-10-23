@@ -57,3 +57,9 @@ Apply `supabase/migrations/20261028000000_admin_edit_user.sql` to enable Admin e
 ## Listed users only
 
 The app verifies the Auth user ID against the Admin-managed `shoe_profiles` list before opening protected pages. It never automatically creates employee profiles. Apply `supabase/migrations/20261030000000_restrict_access_to_listed_users.sql` for server enforcement: unlisted login accounts are blocked, self-enrolment is denied, data/storage access requires list membership, and profile removal revokes refresh sessions. Admin user creation remains supported; provisioning the employee profile permits the new account to sign in. The frontend rechecks membership on focus and every 20 seconds while active. Existing access tokens may remain cryptographically valid until expiry, but the database membership policies deny their application data access immediately after removal.
+
+## Passwords and recovery
+
+Every listed user can open **My Account → Change Password**. The current password is verified through an isolated, non-persisting Auth client before updating the signed-in user's own password. The user returns to sign-in after success. No password values are logged or stored in profile data.
+
+Forgot Password requests a Supabase Auth recovery email and returns to `/update-password`; that production URL must be allowed in Supabase Auth URL Configuration. Expired links show an explicit error. Admin reset links use the selected user's saved login email. Automated tests use fake Auth clients and do not send email or change live passwords; email delivery must be confirmed separately with an authorized recipient.

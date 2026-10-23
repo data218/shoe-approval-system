@@ -1,18 +1,20 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { requestRecoveryLink } from '../lib/passwordRecovery';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { Key, Mail, AlertCircle, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { accessError } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(location.state?.message || null);
   
   const [isForgotPassword, setIsForgotPassword] = useState(false);
 
@@ -26,11 +28,8 @@ export default function Login() {
     setError(null);
     setSuccess(null);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/update-password`,
-      });
-      if (error) throw error;
-      setSuccess('Password reset link sent! Check your email.');
+      await requestRecoveryLink(supabase.auth, email, window.location.origin);
+      setSuccess('If this email belongs to a registered user, a reset link has been requested. Check your inbox and spam folder.');
     } catch (err: any) {
       setError(err.message || 'An error occurred');
     } finally {
@@ -107,7 +106,7 @@ export default function Login() {
           </div>
 
           <div>
-            <form className="space-y-6" onSubmit={handleAuth}>
+            <form className="space-y-6" onSubmit={isForgotPassword ? handleResetPassword : handleAuth}>
               
               {(error || accessError) && (
                 <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3 shadow-sm">
@@ -200,8 +199,7 @@ export default function Login() {
                   Cancel
                 </button>
                 <button
-                  type="button"
-                  onClick={isForgotPassword ? handleResetPassword : handleAuth}
+                  type="submit"
                   disabled={loading}
                   className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-lg shadow-red-600/30 text-sm font-bold text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.98]"
                 >

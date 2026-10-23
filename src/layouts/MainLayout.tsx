@@ -11,7 +11,8 @@ import {
   Package,
   Users as UsersIcon,
   Database,
-  Wallet
+  Wallet,
+  KeyRound
 } from 'lucide-react';
 import { useState } from 'react';
 import ThemeSwitcher from '../components/ThemeSwitcher';
@@ -28,6 +29,7 @@ export default function MainLayout() {
     { name: 'New Request', href: '/dashboard/new', icon: PlusCircle },
     { name: 'Petty Cash Approval', href: '/dashboard/petty-cash', icon: Wallet },
     { name: 'Master Items', href: '/dashboard/items', icon: Package },
+    { name: 'My Account', href: '/dashboard/account', icon: KeyRound },
   ];
 
   if (profile?.role === 'ADMIN') {

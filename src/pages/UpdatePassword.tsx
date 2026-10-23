@@ -1,10 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { updateListedUserPassword, recoveryLinkError } from '../lib/passwordRecovery';
 import { supabase } from '../lib/supabase';
 import { Key, AlertCircle, Eye, EyeOff } from 'lucide-react';
 
 export default function UpdatePassword() {
   const navigate = useNavigate();
+  const { session, profile, accessError, signOut } = useAuth();
+  const [completed, setCompleted] = useState(false);
+  const linkError = recoveryLinkError(window.location.hash, window.location.search);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -12,48 +18,31 @@ export default function UpdatePassword() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    // Check if we actually have a session with an active recovery event
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) {
-        navigate('/');
-      }
-    });
-  }, [navigate]);
-
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      setLoading(false);
-      return;
-    }
-
-    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d]).{6,}$/;
-    if (!passwordRegex.test(password)) {
-      setError('Password must be at least 6 characters and include at least one letter, one number, and one special character.');
-      setLoading(false);
-      return;
-    }
-
     try {
-      const { error } = await supabase.auth.updateUser({
-        password: password
-      });
-
-      if (error) throw error;
-      
-      // Successfully updated password, navigate to dashboard
-      navigate('/dashboard');
+      await updateListedUserPassword(supabase.auth, session?.user.id, profile, password, confirmPassword);
+      setCompleted(true);
+      setPassword(''); setConfirmPassword('');
+      await signOut();
+      navigate('/login', { replace: true, state: { message: 'Password updated successfully. Sign in with your new password.' } });
     } catch (err: any) {
-      setError(err.message || 'An error occurred while updating the password');
-    } finally {
-      setLoading(false);
-    }
+      setError(err.message || 'Unable to update your password. Please try again.');
+    } finally { setLoading(false); }
   };
+
+  if (completed) return <div role="status" className="p-8 text-center">Password updated. Returning to sign in…</div>;
+  if (linkError || !session || !profile) return (
+    <div className="flex min-h-screen items-center justify-center bg-slate-50 p-6">
+      <div className="max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+        <h1 className="text-xl font-bold text-slate-900">Request a new reset link</h1>
+        <p role="alert" className="mt-3 text-sm text-slate-600">{linkError || accessError || 'Your reset session is invalid or has expired. Please request a new link.'}</p>
+        <Link to="/login" className="mt-5 inline-block font-semibold text-brand-600">Back to sign in</Link>
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -67,7 +56,7 @@ export default function UpdatePassword() {
           Update Your Password
         </h2>
         <p className="mt-2 text-center text-sm text-slate-600">
-          Enter your new password below
+          Use at least 6 characters with a letter, a number and a special character.
         </p>
       </div>
 
@@ -91,6 +80,8 @@ export default function UpdatePassword() {
                 <input
                   type={showPassword ? "text" : "password"}
                   required
+                  minLength={6}
+                  autoComplete="new-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="focus:ring-slate-500 focus:border-slate-500 block w-full pl-10 pr-10 sm:text-sm border-slate-300 rounded-lg py-2 border"
@@ -115,6 +106,8 @@ export default function UpdatePassword() {
                 <input
                   type={showConfirmPassword ? "text" : "password"}
                   required
+                  minLength={6}
+                  autoComplete="new-password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="focus:ring-slate-500 focus:border-slate-500 block w-full pl-10 pr-10 sm:text-sm border-slate-300 rounded-lg py-2 border"
