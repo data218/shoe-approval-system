@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { ShieldAlert, Users as UsersIcon, UserCheck, Search, AlertCircle, RefreshCw, Pencil, Trash2, X, Key, Plus, Eye, EyeOff } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
+import { USER_ROLE_OPTIONS, getRoleOptionValue, getRoleLabel } from '../lib/approvals';
 import { Pagination } from '../components/Pagination';
 
 export default function Users() {
@@ -10,6 +11,7 @@ export default function Users() {
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [roleMessage, setRoleMessage] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [updateLoading, setUpdateLoading] = useState<string | null>(null);
   
@@ -71,17 +73,22 @@ export default function Users() {
   const handleRoleChange = async (userId: string, newRole: string) => {
     try {
       setUpdateLoading(userId);
-      const { error } = await supabase
+      setError(null);
+      setRoleMessage(null);
+      const { data, error } = await supabase
         .from('shoe_profiles')
         .update({ role: newRole })
-        .eq('id', userId);
+        .eq('id', userId)
+        .select('id, role')
+        .single();
 
       if (error) throw error;
       
-      setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u));
+      setUsers((previous) => previous.map(u => u.id === userId ? { ...u, role: data.role } : u));
+      setRoleMessage(`Role updated to ${getRoleLabel(data.role)}.`);
     } catch (err: any) {
       console.error(err);
-      alert('Failed to update role. Ensure you have the proper RLS policies.');
+      setError(err.message || 'Unable to update the role. Please try again.');
     } finally {
       setUpdateLoading(null);
     }
@@ -214,7 +221,7 @@ export default function Users() {
     switch (role) {
       case 'ADMIN': return <span className="inline-flex items-center gap-1 bg-purple-100 text-purple-800 px-2 py-1 rounded-md text-xs font-bold border border-purple-200"><ShieldAlert className="w-3 h-3" /> Admin</span>;
       case 'NARENDRA':
-      case 'SANJEEV': return <span className="text-sm font-semibold text-brand-700">Management ({role})</span>;
+      case 'SANJEEV': return <span className="text-sm font-semibold text-brand-700">Management</span>;
       default: return <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-600 px-2 py-1 rounded-md text-xs font-bold border border-slate-200"><UserCheck className="w-3 h-3" /> Requester</span>;
     }
   };
@@ -229,6 +236,12 @@ export default function Users() {
         <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">User Management</h1>
         <p className="text-slate-500 mt-1">Manage employee roles, edit profiles, and control system access.</p>
       </div>
+
+      {roleMessage && (
+        <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-medium text-emerald-800">
+          {roleMessage}
+        </div>
+      )}
 
       {error && (
         <div className="bg-red-50 border border-red-200 p-4 rounded-xl flex items-center gap-3 text-red-700">
@@ -295,15 +308,14 @@ export default function Users() {
                     ) : (
                       <div className="relative">
                         <select 
-                          value={u.role || 'REQUESTER'}
+                          value={getRoleOptionValue(u.role)}
                           onChange={(e) => handleRoleChange(u.id, e.target.value)}
                           disabled={updateLoading === u.id}
                           className="pl-3 pr-8 py-1.5 border border-slate-300 rounded-lg text-sm bg-white hover:bg-slate-50 focus:ring-2 focus:ring-brand-500 outline-none disabled:opacity-50 appearance-none font-medium text-slate-700"
                         >
-                          <option value="REQUESTER">Requester</option>
-                          <option value="NARENDRA">Management (Narendra)</option>
-                          <option value="SANJEEV">Management (Sanjeev)</option>
-                          <option value="ADMIN">Admin / Management</option>
+                          {USER_ROLE_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>{option.label}</option>
+                    ))}
                         </select>
                         {updateLoading === u.id && (
                           <RefreshCw className="w-4 h-4 text-brand-500 animate-spin absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -576,10 +588,9 @@ export default function Users() {
                     onChange={(e) => setCreateForm({...createForm, role: e.target.value})}
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
                   >
-                    <option value="REQUESTER">Requester</option>
-                    <option value="NARENDRA">Management (Narendra)</option>
-                    <option value="SANJEEV">Management (Sanjeev)</option>
-                    <option value="ADMIN">Admin / Management</option>
+                    {USER_ROLE_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>{option.label}</option>
+                    ))}
                   </select>
                 </div>
               </div>

@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { PGlite } from '@electric-sql/pglite';
 import { uuid_ossp } from '@electric-sql/pglite/contrib/uuid_ossp';
 import { pgcrypto } from '@electric-sql/pglite/contrib/pgcrypto';
-import { canApproveRequest, isManagement } from '../src/lib/approvals.ts';
+import { canApproveRequest, isManagement, USER_ROLE_OPTIONS, getRoleOptionValue, getRoleLabel } from '../src/lib/approvals.ts';
 
 const migration = (name) => readFile(new URL(`../supabase/migrations/${name}.sql`, import.meta.url), 'utf8');
 const ids = {
@@ -204,6 +204,38 @@ test('single management approval: database migration and permissions', async (t)
         assert.match((await submit()).display_id, /-100000$/);
         assert.match((await cash()).request_number, /-100000$/);
       });
+    });
+    await t.test('Admin promotion grants the same management workflow for all request types; demotion removes it', async () => {
+      for (const role of ['NARENDRA','SANJEEV']) {
+        await asUser(ids.admin, () => db.query('UPDATE shoe_profiles SET role=$1 WHERE id=$2',[role,ids.legacy]));
+        const purchaseRequest = await asUser(ids.employee, () => submit());
+        const discountRequest = await asUser(ids.employee, () => submit('DISCOUNT',discount));
+        const pettyCashRequest = await asUser(ids.employee, cash);
+        await asUser(ids.legacy, async () => {
+          assert.equal(await scalar('SELECT shoe_is_management()'),true);
+          assert.equal((await act(purchaseRequest.id)).status,'FINAL_APPROVED');
+          assert.equal((await act(discountRequest.id)).status,'FINAL_APPROVED');
+          assert.equal((await actCash(pettyCashRequest.id)).status,'APPROVED');
+        });
+        await asUser(ids.admin, () => db.query("UPDATE shoe_profiles SET role='REQUESTER' WHERE id=$1",[ids.legacy]));
+        const pending = await asUser(ids.employee, () => submit());
+        const pendingCash = await asUser(ids.employee, cash);
+        await asUser(ids.legacy, async () => {
+          assert.equal(await scalar('SELECT shoe_is_management()'),false);
+          await assert.rejects(() => act(pending.id), /Only management/);
+          await assert.rejects(() => actCash(pendingCash.id), /not authorised/);
+        });
+      }
+    });
+    await t.test('role selectors expose only Requester, Management and Admin while retaining existing management access', () => {
+      assert.deepEqual(USER_ROLE_OPTIONS.map((role) => role.label), ['Requester','Management','Admin']);
+      for (const role of ['NARENDRA','SANJEEV']) {
+        assert.equal(getRoleOptionValue(role),'NARENDRA');
+        assert.equal(getRoleLabel(role),'Management');
+        assert.equal(isManagement(getRoleOptionValue(role)),true);
+      }
+      assert.equal(getRoleLabel('ADMIN'),'Admin');
+      assert.equal(getRoleLabel('REQUESTER'),'Requester');
     });
     await t.test('client permissions match the management roles and self-approval rules', () => {
       for (const role of ['REQUESTER','L1_APPROVER','L2_APPROVER','ACCOUNT',null]) assert.equal(isManagement(role),false);

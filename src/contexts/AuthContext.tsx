@@ -105,6 +105,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(false);
   };
 
+  // Refresh roles for signed-in users after an administrator changes access.
+  // Database permissions apply immediately; this also keeps the UI current.
+  useEffect(() => {
+    const userId = session?.user.id;
+    if (!userId) return;
+    let active = true;
+    const refreshProfile = async () => {
+      if (document.visibilityState === 'hidden') return;
+      const { data, error } = await supabase.from('shoe_profiles').select('*').eq('id', userId).maybeSingle();
+      if (active && !error) setProfile(data as Profile | null);
+    };
+    const refreshOnVisibility = () => { if (document.visibilityState === 'visible') void refreshProfile(); };
+    window.addEventListener('focus', refreshOnVisibility);
+    document.addEventListener('visibilitychange', refreshOnVisibility);
+    const timer = window.setInterval(() => { void refreshProfile(); }, 30000);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+      window.removeEventListener('focus', refreshOnVisibility);
+      document.removeEventListener('visibilitychange', refreshOnVisibility);
+    };
+  }, [session?.user.id]);
+
   const signOut = async () => {
     await supabase.auth.signOut();
   };

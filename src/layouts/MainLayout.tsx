@@ -1,4 +1,5 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
+import { getRoleLabel } from '../lib/approvals';
 import { useAuth } from '../contexts/AuthContext';
 import { 
   LayoutDashboard, 
@@ -55,7 +56,7 @@ export default function MainLayout() {
               </div>
               <div className="flex-1 overflow-hidden">
                 <p className="text-sm font-bold text-slate-900 truncate">{profile?.full_name}</p>
-                <p className="text-xs text-brand-600 truncate capitalize font-bold">{profile?.role?.replace('_', ' ')}</p>
+                <p className="text-xs text-brand-600 truncate capitalize font-bold">{getRoleLabel(profile?.role)}</p>
               </div>
             </div>
           </div>
@@ -132,7 +133,7 @@ export default function MainLayout() {
                     </div>
                     <div className="flex-1 overflow-hidden">
                       <p className="text-sm font-bold text-slate-900 truncate">{profile?.full_name}</p>
-                      <p className="text-xs text-brand-600 truncate capitalize font-bold">{profile?.role?.replace('_', ' ')}</p>
+                      <p className="text-xs text-brand-600 truncate capitalize font-bold">{getRoleLabel(profile?.role)}</p>
                     </div>
                   </div>
                 </div>
