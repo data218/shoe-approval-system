@@ -197,7 +197,15 @@ export default function Users() {
         throw new Error((data as any).error);
       }
 
-      // 3. Success! Refresh users list
+      // Persist the login email for the admin directory on older databases too.
+      const { error: emailError } = await supabase.from('shoe_profiles')
+        .update({ email: String((data as any).email || createForm.email).trim().toLowerCase() })
+        .eq('id', (data as any).id);
+      if (emailError) {
+        setError('The user was created, but their email could not be added to the directory. Please apply the email sync migration.');
+      }
+
+      // Success! Refresh users list
       await fetchUsers();
       setCreateModalOpen(false);
       setShowCreatePassword(false);
@@ -213,8 +221,9 @@ export default function Users() {
   const filteredUsers = users.filter(u => {
     const nameStr = String(u.full_name || '').toLowerCase();
     const codeStr = String(u.employee_code || '').toLowerCase();
-    const searchStr = (searchTerm || '').toLowerCase();
-    return nameStr.includes(searchStr) || codeStr.includes(searchStr);
+    const emailStr = String(u.email || '').toLowerCase();
+    const searchStr = (searchTerm || '').trim().toLowerCase();
+    return nameStr.includes(searchStr) || codeStr.includes(searchStr) || emailStr.includes(searchStr);
   });
 
   const getRoleBadge = (role: string) => {
@@ -255,7 +264,7 @@ export default function Users() {
             <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input 
               type="text"
-              placeholder="Search users..."
+              placeholder="Search name, email or employee code..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none text-sm"
@@ -280,6 +289,7 @@ export default function Users() {
             <thead>
               <tr className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider font-bold border-b border-slate-200">
                 <th className="px-6 py-4">Employee</th>
+                <th className="px-6 py-4">Email ID</th>
                 <th className="px-6 py-4">Code</th>
                 <th className="px-6 py-4">Department</th>
                 <th className="px-6 py-4">Current Role</th>
@@ -292,6 +302,9 @@ export default function Users() {
                 <tr key={u.id} className="hover:bg-slate-50 transition-colors group">
                   <td className="px-6 py-4">
                     <div className="font-semibold text-slate-900">{u.full_name}</div>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-slate-600">
+                    {u.email ? <span className="break-all">{u.email}</span> : <span className="text-slate-400">Not available</span>}
                   </td>
                   <td className="px-6 py-4 text-sm font-medium text-slate-500">
                     {u.employee_code}

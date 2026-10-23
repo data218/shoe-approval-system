@@ -82,6 +82,7 @@ async function setup() {
     GRANT SELECT,INSERT,UPDATE,DELETE ON ALL TABLES IN SCHEMA public TO authenticated;
   `);
   await db.exec(await migration('20261026000000_single_management_approval'));
+  await db.exec(await migration('20261027000000_sync_profile_emails'));
 }
 
 test('single management approval: database migration and permissions', async (t) => {
@@ -236,6 +237,16 @@ test('single management approval: database migration and permissions', async (t)
       }
       assert.equal(getRoleLabel('ADMIN'),'Admin');
       assert.equal(getRoleLabel('REQUESTER'),'Requester');
+    });
+    await t.test('directory emails are backfilled from Auth, populated on creation and kept in sync', async () => {
+      assert.equal(await scalar('SELECT email FROM shoe_profiles WHERE id=$1',[ids.manager]),'manager@example.test');
+      const created = await asUser(ids.admin, () => scalar("SELECT shoe_admin_create_user('EmailTest@example.test','TestPass1!','Email Test','EMAIL-TEST','Sales','Main','REQUESTER')"));
+      assert.equal(await scalar('SELECT email FROM shoe_profiles WHERE id=$1',[created.id]),'emailtest@example.test');
+      await db.query("UPDATE auth.users SET email='Changed@example.test' WHERE id=$1",[created.id]);
+      assert.equal(await scalar('SELECT email FROM shoe_profiles WHERE id=$1',[created.id]),'changed@example.test');
+      await asUser(ids.admin, () => db.query("UPDATE shoe_profiles SET email='incorrect@example.test' WHERE id=$1",[created.id]));
+      assert.equal(await scalar('SELECT email FROM shoe_profiles WHERE id=$1',[created.id]),'changed@example.test');
+      await asUser(ids.admin, () => db.query('SELECT shoe_admin_delete_user($1)',[created.id]));
     });
     await t.test('client permissions match the management roles and self-approval rules', () => {
       for (const role of ['REQUESTER','L1_APPROVER','L2_APPROVER','ACCOUNT',null]) assert.equal(isManagement(role),false);

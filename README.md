@@ -45,3 +45,7 @@ The oldest migration describes an earlier, unprefixed schema and contains destru
 ## Workflow tests
 
 `npm run test:approval` runs isolated PostgreSQL tests using PGlite. It constructs a fixture of the established base schema, loads the historical petty cash/admin migrations, applies the new migration, and exercises submission, role restrictions, single-step approvals, return/resubmission, payment limits, user administration and legacy-data conversion. It never connects to or changes a hosted Supabase project. Passing local tests does not establish that a hosted migration has been applied.
+
+## User directory emails
+
+User Management displays and searches profile emails. Apply `supabase/migrations/20261027000000_sync_profile_emails.sql` once to backfill missing or placeholder addresses from Supabase Auth and keep profile emails synchronized with login changes. The frontend also saves the login email when creating users against older databases. This migration changes no passwords or approval permissions.
