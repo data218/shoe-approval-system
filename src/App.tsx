@@ -1,19 +1,19 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import MainLayout from './layouts/MainLayout';
-import Login from './pages/Login';
+const Login = lazy(() => import('./pages/Login'));
 
-import Landing from './pages/Landing';
-import Dashboard from './pages/Dashboard';
-import Inbox from './pages/Inbox';
-import NewRequest from './pages/NewRequest';
-import Items from './pages/Items';
-import Users from './pages/Users';
-import DataManagement from './pages/DataManagement';
-import PettyCash from './pages/PettyCash';
-import UpdatePassword from './pages/UpdatePassword';
+const Landing = lazy(() => import('./pages/Landing'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Inbox = lazy(() => import('./pages/Inbox'));
+const NewRequest = lazy(() => import('./pages/NewRequest'));
+const Items = lazy(() => import('./pages/Items'));
+const Users = lazy(() => import('./pages/Users'));
+const DataManagement = lazy(() => import('./pages/DataManagement'));
+const PettyCash = lazy(() => import('./pages/PettyCash'));
+const UpdatePassword = lazy(() => import('./pages/UpdatePassword'));
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { session, loading } = useAuth();
@@ -73,7 +73,9 @@ export default function App() {
     <ThemeProvider>
       <AuthProvider>
         <BrowserRouter>
-          <AppRoutes />
+          <Suspense fallback={<div role="status" className="flex min-h-screen items-center justify-center text-slate-600">Loading your workspace…</div>}>
+            <AppRoutes />
+          </Suspense>
         </BrowserRouter>
       </AuthProvider>
     </ThemeProvider>

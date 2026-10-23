@@ -3,12 +3,13 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { Activity, Clock, CheckCircle, XCircle, Package, Tag, ArrowRight, Eye, MessageSquare, X, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { isManagement } from '../lib/approvals';
 import { Pagination } from '../components/Pagination';
 
 export default function Dashboard() {
   const { profile } = useAuth();
   const navigate = useNavigate();
-  const [stats, setStats] = useState({ l1Pending: 0, l2Pending: 0, approvedToday: 0, rejected: 0, totalValue: 0 });
+  const [stats, setStats] = useState({ pending: 0, approvedToday: 0, rejected: 0, totalValue: 0 });
   const [recentRequests, setRecentRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -36,21 +37,15 @@ export default function Dashboard() {
         .select(`
           *, 
           requester:shoe_profiles!requester_id(full_name, department), 
-          audit_logs:shoe_audit_logs(remarks, action),
+          audit_logs:shoe_audit_logs(remarks, action, created_at),
           purchase_details:shoe_purchase_details(item_name),
           discount_details:shoe_discount_details(product_name)
         `, { count: 'exact' })
         .order('created_at', { ascending: false });
 
-      // Apply role-based filtering for the dashboard views
-      if (profile?.role === 'L1_APPROVER') {
-        query = query.in('status', ['PENDING_L1', 'FINAL_APPROVED', 'REJECTED']);
-      } else if (profile?.role === 'L2_APPROVER') {
-        query = query.in('status', ['PENDING_L2', 'FINAL_APPROVED', 'REJECTED']);
-      } else if (profile?.role === 'REQUESTER') {
-        query = query.eq('requester_id', profile.id);
+      if (!isManagement(profile?.role)) {
+        query = query.eq('requester_id', profile!.id);
       }
-      // ADMIN sees everything
 
       const from = (currentPage - 1) * itemsPerPage;
       const to = from + itemsPerPage - 1;
@@ -67,7 +62,7 @@ export default function Dashboard() {
       const formattedReqs = (reqs || []).map(r => {
         let lastRemark = null;
         if (r.audit_logs && r.audit_logs.length > 0) {
-          lastRemark = r.audit_logs[r.audit_logs.length - 1].remarks;
+          lastRemark = [...r.audit_logs].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0].remarks;
         }
         
         let itemName = '-';
@@ -84,8 +79,8 @@ export default function Dashboard() {
       // 2. Fetch Stats
       // For stats, we need all requests visible to the user
       let statsQuery = supabase.from('shoe_requests').select('*');
-      if (profile?.role === 'REQUESTER') {
-        statsQuery = statsQuery.eq('requester_id', profile.id);
+      if (!isManagement(profile?.role)) {
+        statsQuery = statsQuery.eq('requester_id', profile!.id);
       }
       
       const { data: allReqs, error: statsError } = await statsQuery;
@@ -94,14 +89,12 @@ export default function Dashboard() {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      let l1Pending = 0;
-      let l2Pending = 0;
+      let pending = 0;
       let approvedToday = 0;
       let rejected = 0;
       
       (allReqs || []).forEach(r => {
-        if (r.status === 'PENDING_L1') l1Pending++;
-        if (r.status === 'PENDING_L2') l2Pending++;
+        if (r.status === 'PENDING_MANAGEMENT') pending++;
         if (r.status === 'REJECTED') rejected++;
         
         if (r.status === 'FINAL_APPROVED') {
@@ -122,7 +115,7 @@ export default function Dashboard() {
         disData?.forEach(d => totalVal += parseFloat(d.final_price || '0'));
       }
 
-      setStats({ l1Pending, l2Pending, approvedToday, rejected, totalValue: totalVal });
+      setStats({ pending, approvedToday, rejected, totalValue: totalVal });
 
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -155,21 +148,14 @@ export default function Dashboard() {
     }
   };
 
-  const getL1Badge = (status: string) => {
-    if (status === 'PENDING_L1') return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">Pending</span>;
-    if (['PENDING_L2', 'FINAL_APPROVED'].includes(status)) return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">Approved</span>;
-    if (status === 'REJECTED') return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800">Rejected</span>;
-    if (status === 'SENT_BACK') return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-800">Sent Back</span>;
-    return <span className="text-slate-300">-</span>;
-  };
-
-  const getL2Badge = (status: string) => {
-    if (status === 'PENDING_L1') return <span className="text-slate-300">-</span>;
-    if (status === 'PENDING_L2') return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">Pending</span>;
-    if (status === 'FINAL_APPROVED') return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">Approved</span>;
-    if (status === 'REJECTED') return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800">Rejected</span>;
-    if (status === 'SENT_BACK') return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-800">Sent Back</span>;
-    return <span className="text-slate-300">-</span>;
+  const getApprovalBadge = (status: string) => {
+    const labels: Record<string, string> = {
+      PENDING_MANAGEMENT: 'Pending Management',
+      FINAL_APPROVED: 'Approved',
+      REJECTED: 'Rejected',
+      SENT_BACK: 'Sent Back',
+    };
+    return <span className="text-sm font-semibold">{labels[status] || status}</span>;
   };
 
   const getPriorityBadge = (priority: string) => {
@@ -215,31 +201,17 @@ export default function Dashboard() {
           {[...Array(4)].map((_, i) => <div key={i} className="h-32 bg-slate-200 rounded-2xl"></div>)}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
-          {/* L1 Pending Card */}
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {/* Management Pending Card */}
           <div className="bg-gradient-to-br from-amber-50 to-orange-100 p-6 rounded-2xl shadow-sm border border-amber-200 hover:shadow-md transition-shadow relative overflow-hidden group">
             <div className="absolute -right-6 -top-6 w-24 h-24 bg-amber-200/50 rounded-full blur-2xl group-hover:bg-amber-300/50 transition-colors"></div>
             <div className="flex items-center justify-between relative z-10">
               <div>
-                <p className="text-sm font-bold text-amber-800 uppercase tracking-wider">L1 Pending</p>
-                <h3 className="text-3xl font-black text-amber-950 mt-2">{stats.l1Pending}</h3>
+                <p className="text-sm font-bold text-amber-800 uppercase tracking-wider">Pending Management</p>
+                <h3 className="text-3xl font-black text-amber-950 mt-2">{stats.pending}</h3>
               </div>
               <div className="w-14 h-14 bg-white/60 rounded-2xl flex items-center justify-center rotate-3 shadow-sm">
                 <Clock className="w-7 h-7 text-amber-600" />
-              </div>
-            </div>
-          </div>
-
-          {/* L2 Pending Card */}
-          <div className="bg-gradient-to-br from-blue-50 to-brand-100 p-6 rounded-2xl shadow-sm border border-blue-200 hover:shadow-md transition-shadow relative overflow-hidden group">
-            <div className="absolute -right-6 -top-6 w-24 h-24 bg-blue-200/50 rounded-full blur-2xl group-hover:bg-blue-300/50 transition-colors"></div>
-            <div className="flex items-center justify-between relative z-10">
-              <div>
-                <p className="text-sm font-bold text-blue-800 uppercase tracking-wider">L2 Pending</p>
-                <h3 className="text-3xl font-black text-blue-950 mt-2">{stats.l2Pending}</h3>
-              </div>
-              <div className="w-14 h-14 bg-white/60 rounded-2xl flex items-center justify-center rotate-3 shadow-sm">
-                <Clock className="w-7 h-7 text-blue-600" />
               </div>
             </div>
           </div>
@@ -314,8 +286,7 @@ export default function Dashboard() {
                   <th className="px-6 py-4">Type</th>
                   <th className="px-6 py-4">Item Name</th>
                   <th className="px-6 py-4">Requester</th>
-                  <th className="px-6 py-4 text-center">L1 Status</th>
-                  <th className="px-6 py-4 text-center">L2 Status</th>
+                  <th className="px-6 py-4 text-center">Approval Status</th>
                   <th className="px-6 py-4 max-w-[200px]">Latest Remarks</th>
                   <th className="px-6 py-4 text-right rounded-tr-lg">Actions</th>
                 </tr>
@@ -348,10 +319,7 @@ export default function Dashboard() {
                       <div className="text-xs text-slate-500">{req.requester?.department}</div>
                     </td>
                     <td className="px-6 py-4 text-center">
-                      {getL1Badge(req.status)}
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      {getL2Badge(req.status)}
+                      {getApprovalBadge(req.status)}
                     </td>
                     <td className="px-6 py-4 max-w-[200px] truncate">
                       {req.lastRemark ? (
@@ -405,8 +373,7 @@ export default function Dashboard() {
                   {getPriorityBadge(selectedRequest.priority)}
                 </div>
                 <div className="flex gap-2 mt-2">
-                  <div className="text-sm font-semibold text-slate-500 flex items-center gap-2">L1: {getL1Badge(selectedRequest.status)}</div>
-                  <div className="text-sm font-semibold text-slate-500 flex items-center gap-2">L2: {getL2Badge(selectedRequest.status)}</div>
+                  <div className="text-sm font-semibold text-slate-500 flex items-center gap-2">Approval: {getApprovalBadge(selectedRequest.status)}</div>
                 </div>
               </div>
               <button 

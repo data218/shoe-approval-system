@@ -6,7 +6,7 @@ interface Profile {
   id: string;
   full_name: string;
   employee_code: string;
-  role: 'ADMIN' | 'REQUESTER' | 'L1_APPROVER' | 'L2_APPROVER';
+  role: 'ADMIN' | 'REQUESTER' | 'NARENDRA' | 'SANJEEV';
   department: string;
   showroom_location: string;
 }
@@ -114,28 +114,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       {authError && !window.location.pathname.includes('/update-password') ? (
         <div className="min-h-screen flex items-center justify-center bg-slate-50 p-6">
           <div className="bg-red-50 border border-red-200 text-red-800 p-6 rounded-xl max-w-lg shadow-sm">
-            <h3 className="font-bold text-lg mb-2">Critical Database Error</h3>
-            <p className="mb-4">The app successfully logged you in, but the database blocked us from reading your profile. This is almost certainly because the Row Level Security (RLS) SQL command was not run.</p>
-            <div className="bg-white p-3 rounded border border-red-100 font-mono text-sm mb-4">
-              {authError}
-            </div>
-            <p className="text-sm font-semibold">Please run this in your Supabase SQL Editor:</p>
-            <pre className="bg-slate-900 text-slate-50 p-4 rounded mt-2 text-xs overflow-x-auto whitespace-pre-wrap">
-              {`-- 1. Fix role constraints
-ALTER TABLE shoe_profiles DROP CONSTRAINT IF EXISTS profiles_role_check;
-ALTER TABLE shoe_profiles DROP CONSTRAINT IF EXISTS shoe_profiles_role_check;
-ALTER TABLE shoe_profiles ADD CONSTRAINT shoe_profiles_role_check CHECK (role IN ('ADMIN', 'REQUESTER', 'L1_APPROVER', 'L2_APPROVER', 'NARENDRA', 'SANJEEV'));
-
--- 2. Fix RLS policies
-DROP POLICY IF EXISTS "Allow public read profiles" ON shoe_profiles;
-DROP POLICY IF EXISTS "Allow users to update own profile" ON shoe_profiles;
-DROP POLICY IF EXISTS "Allow users to insert own profile" ON shoe_profiles;
-
-ALTER TABLE shoe_profiles ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow public read profiles" ON shoe_profiles FOR SELECT USING (true);
-CREATE POLICY "Allow users to update own profile" ON shoe_profiles FOR UPDATE USING (auth.uid() = id);
-CREATE POLICY "Allow users to insert own profile" ON shoe_profiles FOR INSERT WITH CHECK (auth.uid() = id);`}
-            </pre>
+            <h3 className="font-bold text-lg mb-2">Your employee profile needs attention</h3>
+            <p className="mb-4">We could not load your employee profile. Please sign out and contact your administrator to check your account.</p>
             <div className="mt-6 flex justify-end">
               <button 
                 onClick={() => supabase.auth.signOut()}

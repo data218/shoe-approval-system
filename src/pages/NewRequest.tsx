@@ -1,3 +1,4 @@
+import ApprovalWorkflowNotice from '../components/ApprovalWorkflowNotice';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
@@ -53,15 +54,21 @@ export default function NewRequest() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
+  useEffect(() => () => { if (imagePreview) URL.revokeObjectURL(imagePreview); }, [imagePreview]);
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+      if (!file.type.startsWith('image/') || file.size > 5 * 1024 * 1024) {
+        setError('Choose an image no larger than 5 MB.');
+        return;
+      }
+      setError(null);
       setImageFile(file);
       setImagePreview(URL.createObjectURL(file));
     }
   };
 
-  // Derived values
   // Derived values
   const safeQuantity = quantity === '' ? 0 : quantity;
   const safeUnitPrice = unitPrice === '' ? 0 : unitPrice;
@@ -79,6 +86,10 @@ export default function NewRequest() {
 
     try {
       if (!user) throw new Error('You must be logged in to create a request');
+      if (!requestType) throw new Error('Select a request type.');
+      if (requestType === 'DISCOUNT' && (safeOriginalPrice <= 0 || safeDiscountAmount > safeOriginalPrice)) {
+        throw new Error('Discount cannot exceed the positive original price.');
+      }
 
       // 1. Upload Image (If exists)
       let imageUrl = null;
@@ -100,115 +111,20 @@ export default function NewRequest() {
         imageUrl = publicUrlData.publicUrl;
       }
 
-      // 2. Generate Display ID
-      const year = new Date().getFullYear();
-      const prefix = requestType === 'PURCHASE' ? 'PUR' : 'DIS';
-      
-      // Get the latest request of this type FOR THIS YEAR to determine the next ID
-      const { data: latestReq, error: latestError } = await supabase
-        .from('shoe_requests')
-        .select('display_id')
-        .eq('type', requestType)
-        .like('display_id', `${prefix}-${year}-%`)
-        .order('display_id', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      
-      if (latestError) throw latestError;
-      
-      let nextNum = 1;
-      if (latestReq && latestReq.display_id) {
-        const parts = latestReq.display_id.split('-');
-        if (parts.length === 3) {
-          const lastNum = parseInt(parts[2], 10);
-          if (!isNaN(lastNum)) {
-            nextNum = lastNum + 1;
-          }
-        }
-      }
-      
-      let inserted = false;
-      let requestData = null;
-      let attempts = 0;
-      let finalDisplayId = '';
-
-      while (!inserted && attempts < 20) {
-        const displayId = `${prefix}-${year}-${nextNum.toString().padStart(5, '0')}`;
-        finalDisplayId = displayId;
-
-        // 3. Insert main request
-        const { data, error: requestError } = await supabase
-          .from('shoe_requests')
-          .insert([{
-            display_id: displayId,
-            type: requestType,
-            requester_id: user.id,
-            status: 'PENDING_L1',
-            priority: priority,
-            reason: reason,
-            image_url: imageUrl
-          }])
-          .select()
-          .single();
-
-        if (requestError) {
-          if (requestError.code === '23505') { // Unique constraint violation
-            nextNum++;
-            attempts++;
-            continue;
-          }
-          throw requestError;
-        }
-
-        requestData = data;
-        inserted = true;
-      }
-
-      if (!inserted || !requestData) {
-        throw new Error('Could not generate a unique Request ID. Please try again.');
-      }
-
-      // 4. Insert specific details
-      if (requestType === 'PURCHASE') {
-        const { error: purError } = await supabase
-          .from('shoe_purchase_details')
-          .insert([{
-            request_id: requestData.id,
-            supplier: supplier,
-            item_category: itemCategory,
-            item_name: itemName,
-            sku: purSku,
-            quantity: quantity,
-            unit_price: unitPrice,
-            total_amount: totalAmount
-          }]);
-        if (purError) throw purError;
-      } else {
-        const { error: disError } = await supabase
-          .from('shoe_discount_details')
-          .insert([{
-            request_id: requestData.id,
-            customer_name: customerName,
-            customer_mobile: customerMobile,
-            product_name: productName,
-            brand: brand,
-            sku: disSku,
-            original_price: originalPrice,
-            discount_amount: discountAmount,
-            discount_percentage: parseFloat(discountPercentage as string),
-            final_price: finalPrice
-          }]);
-        if (disError) throw disError;
-      }
-
-      // 5. Create an audit log for creation
-      await supabase.from('shoe_audit_logs').insert([{
-        request_id: requestData.id,
-        user_id: user.id,
-        action: 'CREATED',
-        new_status: 'PENDING_L1',
-        remarks: 'Request generated by user.'
-      }]);
+      const details = requestType === 'PURCHASE' ? {
+        supplier, item_category: itemCategory, item_name: itemName, sku: purSku,
+        quantity: safeQuantity, unit_price: safeUnitPrice,
+      } : {
+        customer_name: customerName, customer_mobile: customerMobile,
+        product_name: productName, brand, sku: disSku,
+        original_price: safeOriginalPrice, discount_amount: safeDiscountAmount,
+      };
+      const { data: requestData, error: requestError } = await supabase.rpc('shoe_create_request', {
+        p_type: requestType, p_priority: priority, p_reason: reason,
+        p_details: details, p_image_url: imageUrl,
+      });
+      if (requestError) throw requestError;
+      const finalDisplayId = requestData.display_id;
 
       navigate('/dashboard', { state: { message: `Request ${finalDisplayId} created successfully.` } });
     } catch (err: any) {
@@ -225,6 +141,8 @@ export default function NewRequest() {
         <h1 className="text-3xl font-bold text-slate-900">New Request</h1>
         <p className="mt-2 text-slate-600">Submit a new goods purchase or customer discount for approval.</p>
       </div>
+
+      <ApprovalWorkflowNotice />
 
         <div className="grid grid-cols-2 gap-4">
           <button
