@@ -647,8 +647,8 @@ export default function PettyCash() {
                     <th className="px-4 py-3 whitespace-nowrap">Category</th>
                     <th className="px-4 py-3 whitespace-nowrap">Description</th>
                     <th className="px-4 py-3 whitespace-nowrap text-right">Requested Amount</th>
-                    <th className="px-4 py-3 whitespace-nowrap text-right">Approved</th>
-                    <th className="px-4 py-3 whitespace-nowrap">Current Approver</th>
+                    <th className="px-4 py-3 whitespace-nowrap text-right">Approved Amount</th>
+                    <th className="px-4 py-3 whitespace-nowrap">Current Step</th>
                     <th className="px-4 py-3 whitespace-nowrap text-center">Status</th>
                     <th className="px-4 py-3 whitespace-nowrap text-right rounded-tr-lg">Actions</th>
                   </tr>

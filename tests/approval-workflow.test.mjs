@@ -103,6 +103,8 @@ test('single management approval: database migration and permissions', async (t)
           assert.equal(p.status, 'PENDING_MANAGEMENT'); assert.equal(d.status, 'PENDING_MANAGEMENT');
           assert.equal(c.current_stage, 'MANAGEMENT'); assert.equal(c.status, 'PENDING_MANAGEMENT');
           assert.equal(c.requires_management_approval, true);
+          assert.equal(c.approved_amount, null); assert.equal(Number(c.paid_amount), 0);
+          assert.equal(Number(await scalar("SELECT count(*) FROM shoe_petty_cash_approval_history WHERE request_id=$1 AND decision='APPROVED'",[c.id])),0);
           assert.ok(!displayIds.has(p.display_id)); displayIds.add(p.display_id);
           assert.equal(Number(await scalar('SELECT total_amount FROM shoe_purchase_details WHERE request_id=$1',[p.id])),300);
           assert.equal(Number(await scalar('SELECT final_price FROM shoe_discount_details WHERE request_id=$1',[d.id])),900);

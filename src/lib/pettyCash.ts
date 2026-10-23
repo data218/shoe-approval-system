@@ -120,7 +120,7 @@ export const STAGE_META: Record<
   { label: string; short: string; approverRole: string }
 > = {
   MANAGEMENT: { label: 'Management approval', short: 'Management', approverRole: 'Management' },
-  PAYMENT: { label: 'Payment & settlement', short: 'Payment', approverRole: 'Management' },
+  PAYMENT: { label: 'Payment & settlement', short: 'Payment', approverRole: 'Payment & settlement' },
 };
 
 export const STATUS_META: Record<PettyCashStatus, { label: string; className: string }> = {
@@ -128,7 +128,7 @@ export const STATUS_META: Record<PettyCashStatus, { label: string; className: st
   SUBMITTED: { label: 'Submitted', className: 'bg-slate-100 text-slate-700 border-slate-200' },
   PENDING_MANAGEMENT: { label: 'Pending Management', className: 'bg-amber-100 text-amber-800 border-amber-200' },
 
-  APPROVED: { label: 'Approved', className: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
+  APPROVED: { label: 'Approved — awaiting payment', className: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
   REJECTED: { label: 'Rejected', className: 'bg-red-100 text-red-800 border-red-200' },
   RETURNED: { label: 'Returned for Correction', className: 'bg-rose-100 text-rose-800 border-rose-200' },
   PAID: { label: 'Paid', className: 'bg-teal-100 text-teal-800 border-teal-200' },
