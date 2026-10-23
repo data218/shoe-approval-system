@@ -49,3 +49,7 @@ The oldest migration describes an earlier, unprefixed schema and contains destru
 ## User directory emails
 
 User Management displays and searches profile emails. Apply `supabase/migrations/20261027000000_sync_profile_emails.sql` once to backfill missing or placeholder addresses from Supabase Auth and keep profile emails synchronized with login changes. The frontend also saves the login email when creating users against older databases. This migration changes no passwords or approval permissions.
+
+## Full user editing
+
+Apply `supabase/migrations/20261028000000_admin_edit_user.sql` to enable Admin edits of login email and optional password alongside name, employee code, department, branch and role. It also backfills profile emails from Auth. The RPC checks Admin access and updates Auth, the email identity and the employee profile atomically. Blank passwords keep the existing password; existing passwords are never retrieved by the editor. Until installed, ordinary profile/role editing remains available, while email/password changes show an explicit unavailable message.

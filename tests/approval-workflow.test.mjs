@@ -83,6 +83,7 @@ async function setup() {
   `);
   await db.exec(await migration('20261026000000_single_management_approval'));
   await db.exec(await migration('20261027000000_sync_profile_emails'));
+  await db.exec(await migration('20261028000000_admin_edit_user'));
 }
 
 test('single management approval: database migration and permissions', async (t) => {
@@ -246,6 +247,26 @@ test('single management approval: database migration and permissions', async (t)
       assert.equal(await scalar('SELECT email FROM shoe_profiles WHERE id=$1',[created.id]),'changed@example.test');
       await asUser(ids.admin, () => db.query("UPDATE shoe_profiles SET email='incorrect@example.test' WHERE id=$1",[created.id]));
       assert.equal(await scalar('SELECT email FROM shoe_profiles WHERE id=$1',[created.id]),'changed@example.test');
+      await asUser(ids.admin, () => db.query('SELECT shoe_admin_delete_user($1)',[created.id]));
+    });
+    await t.test('Admin edits all user fields and login credentials atomically; other roles cannot', async () => {
+      const created = await asUser(ids.admin, () => scalar("SELECT shoe_admin_create_user('editable@example.test','BeforePass1!','Edit User','EDIT-TEST','Sales','Main','REQUESTER')"));
+      const update = (email='edited@example.test',code='EDIT-UPDATED',password='AfterPass1!') => scalar(
+        "SELECT to_jsonb(shoe_admin_update_user($1,$2,'Updated Name',$3,'Accounts','New Branch','NARENDRA',$4))",[created.id,email,code,password]);
+      await asUser(ids.employee, () => assert.rejects(() => update(), /Only administrators/));
+      const updated = await asUser(ids.admin, () => update());
+      assert.equal(updated.full_name,'Updated Name'); assert.equal(updated.email,'edited@example.test');
+      assert.equal(updated.employee_code,'EDIT-UPDATED'); assert.equal(updated.department,'Accounts');
+      assert.equal(updated.showroom_location,'New Branch'); assert.equal(updated.role,'NARENDRA');
+      assert.equal(await scalar("SELECT encrypted_password = extensions.crypt('AfterPass1!',encrypted_password) FROM auth.users WHERE id=$1",[created.id]),true);
+      assert.equal(await scalar("SELECT identity_data->>'email' FROM auth.identities WHERE user_id=$1",[created.id]),'edited@example.test');
+      const passwordBefore = await scalar('SELECT encrypted_password FROM auth.users WHERE id=$1',[created.id]);
+      await asUser(ids.admin, () => update('edited@example.test','EDIT-UPDATED',null));
+      assert.equal(await scalar('SELECT encrypted_password FROM auth.users WHERE id=$1',[created.id]),passwordBefore);
+      await asUser(ids.admin, () => assert.rejects(() => update('employee@example.test'), /already used/));
+      await asUser(ids.admin, () => assert.rejects(() => update('rollback@example.test','employee'), /unique/));
+      assert.equal(await scalar('SELECT email FROM auth.users WHERE id=$1',[created.id]),'edited@example.test');
+      await asUser(ids.admin, () => assert.rejects(() => scalar("SELECT shoe_admin_update_user($1,'admin@example.test','Admin','admin','Sales','Main','REQUESTER')",[ids.admin]), /own administrator/));
       await asUser(ids.admin, () => db.query('SELECT shoe_admin_delete_user($1)',[created.id]));
     });
     await t.test('client permissions match the management roles and self-approval rules', () => {

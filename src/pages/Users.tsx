@@ -21,7 +21,8 @@ export default function Users() {
   
   // Edit Modal State
   const [editingUser, setEditingUser] = useState<any | null>(null);
-  const [editForm, setEditForm] = useState({ full_name: '', employee_code: '', department: '' });
+  const [editForm, setEditForm] = useState({ email: '', full_name: '', employee_code: '', department: '', showroom_location: '', role: 'REQUESTER', password: '' });
+  const [editError, setEditError] = useState<string | null>(null);
   const [editLoading, setEditLoading] = useState(false);
 
   // Reset Password Modal State
@@ -138,34 +139,63 @@ export default function Users() {
 
   const openEditModal = (user: any) => {
     setEditingUser(user);
+    setEditError(null);
     setEditForm({
+      email: user.email || '',
       full_name: user.full_name || '',
       employee_code: user.employee_code || '',
-      department: user.department || ''
+      department: user.department || '',
+      showroom_location: user.showroom_location || '',
+      role: getRoleOptionValue(user.role),
+      password: ''
     });
   };
 
   const saveEdit = async () => {
     if (!editingUser) return;
     
+    if (!editForm.full_name.trim() || !editForm.employee_code.trim()) {
+      setEditError('Full name and employee code are required.');
+      return;
+    }
+    if (editForm.password && editForm.password.length < 6) {
+      setEditError('New password must be at least 6 characters.');
+      return;
+    }
     try {
       setEditLoading(true);
-      const { error } = await supabase
-        .from('shoe_profiles')
-        .update({
-          full_name: editForm.full_name,
-          employee_code: editForm.employee_code,
-          department: editForm.department
-        })
-        .eq('id', editingUser.id);
-
-      if (error) throw error;
-      
-      setUsers(users.map(u => u.id === editingUser.id ? { ...u, ...editForm } : u));
+      setEditError(null);
+      const { data, error } = await supabase.rpc('shoe_admin_update_user', {
+        p_user_id: editingUser.id,
+        p_email: editForm.email.trim(),
+        p_full_name: editForm.full_name.trim(),
+        p_employee_code: editForm.employee_code.trim(),
+        p_department: editForm.department.trim(),
+        p_showroom_location: editForm.showroom_location.trim(),
+        p_role: editForm.role,
+        p_password: editForm.password || null,
+      });
+      let saved = data;
+      if (error?.code === 'PGRST202') {
+        // Preserve existing profile editing until the new RPC is installed.
+        const emailChanged = editForm.email.trim().toLowerCase() !== String(editingUser.email || '').trim().toLowerCase();
+        if (emailChanged || editForm.password) {
+          throw new Error('Email and password editing needs the account-editing update before changes can be saved. Other profile fields can still be edited.');
+        }
+        const result = await supabase.from('shoe_profiles').update({
+          full_name: editForm.full_name.trim(), employee_code: editForm.employee_code.trim(),
+          department: editForm.department.trim(), showroom_location: editForm.showroom_location.trim(),
+          role: editForm.role,
+        }).eq('id', editingUser.id).select('*').single();
+        if (result.error) throw result.error;
+        saved = result.data;
+      } else if (error) throw error;
+      setUsers((previous) => previous.map(u => u.id === editingUser.id ? saved : u));
       setEditingUser(null);
+      setEditForm({ email: '', full_name: '', employee_code: '', department: '', showroom_location: '', role: 'REQUESTER', password: '' });
+      setRoleMessage('User details updated successfully.');
     } catch (err: any) {
-      console.error(err);
-      alert('Failed to save edits. Ensure you have the proper Admin RLS policies.');
+      setEditError(err.message || 'Unable to save user details. Please try again.');
     } finally {
       setEditLoading(false);
     }
@@ -337,6 +367,9 @@ export default function Users() {
                     )}
                   </td>
                   <td className="px-6 py-4 text-right">
+                    {u.id === profile?.id && (
+                      <button onClick={() => openEditModal(u)} aria-label="Edit your profile" className="p-1.5 text-slate-400 hover:text-brand-600" title="Edit User"><Pencil className="h-4 w-4" /></button>
+                    )}
                     {u.id !== profile?.id && (
                       <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
@@ -369,7 +402,7 @@ export default function Users() {
               ))}
               {filteredUsers.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
+                  <td colSpan={7} className="px-6 py-12 text-center text-slate-500">
                     No users found matching your search.
                   </td>
                 </tr>
@@ -387,67 +420,56 @@ export default function Users() {
         </div>
       </div>
 
-      {/* Edit Modal Overlay */}
+      {/* Edit all employee fields; passwords are never read or displayed. */}
       {editingUser && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="flex justify-between items-center p-5 border-b border-slate-100 bg-slate-50/50">
-              <h3 className="text-lg font-bold text-slate-900">Edit Profile</h3>
-              <button 
-                onClick={() => setEditingUser(null)}
-                className="text-slate-400 hover:text-slate-600 p-1 rounded-full hover:bg-slate-200 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
+          <form onSubmit={(event) => { event.preventDefault(); void saveEdit(); }} className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center p-5 border-b border-slate-100">
+              <div><h3 className="text-lg font-bold text-slate-900">Edit User</h3><p className="mt-1 text-sm text-slate-500">Manage employee details, login access and role.</p></div>
+              <button type="button" aria-label="Close edit user" disabled={editLoading} onClick={() => setEditingUser(null)} className="p-2 text-slate-400 hover:text-slate-600"><X className="h-5 w-5" /></button>
             </div>
-            
-            <div className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
-                <input 
-                  type="text"
-                  value={editForm.full_name}
-                  onChange={e => setEditForm({...editForm, full_name: e.target.value})}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none"
-                />
+            <div className="p-6 space-y-5">
+              {editError && <div role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">{editError}</div>}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {([
+                  ['email', 'Email ID', 'email'], ['full_name', 'Full Name', 'text'],
+                  ['employee_code', 'Employee Code', 'text'], ['department', 'Department', 'text'],
+                  ['showroom_location', 'Branch / Location', 'text'],
+                ] as const).map(([field, label, type]) => (
+                  <div key={field}>
+                    <label htmlFor={`edit-${field}`} className="block text-sm font-medium text-slate-700 mb-1">{label}</label>
+                    <input id={`edit-${field}`} type={type} value={editForm[field]} disabled={editLoading}
+                      required={['email','full_name','employee_code'].includes(field)}
+                      onChange={(event) => setEditForm({ ...editForm, [field]: event.target.value })}
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none disabled:bg-slate-50" />
+                  </div>
+                ))}
+                <div>
+                  <label htmlFor="edit-role" className="block text-sm font-medium text-slate-700 mb-1">Role</label>
+                  <select id="edit-role" value={editForm.role} disabled={editLoading || editingUser.id === profile?.id}
+                    onChange={(event) => setEditForm({ ...editForm, role: event.target.value })}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none disabled:bg-slate-50">
+                    {USER_ROLE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                  </select>
+                  {editingUser.id === profile?.id && <p className="mt-1 text-xs text-slate-500">Your administrator role is protected to prevent losing access.</p>}
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Employee Code</label>
-                <input 
-                  type="text"
-                  value={editForm.employee_code}
-                  onChange={e => setEditForm({...editForm, employee_code: e.target.value})}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Department</label>
-                <input 
-                  type="text"
-                  value={editForm.department}
-                  onChange={e => setEditForm({...editForm, department: e.target.value})}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none"
-                />
+              <div className="border-t border-slate-100 pt-4">
+                <label htmlFor="edit-password" className="block text-sm font-medium text-slate-700 mb-1">New Password (optional)</label>
+                <input id="edit-password" type="password" autoComplete="new-password" minLength={6} value={editForm.password} disabled={editLoading}
+                  onChange={(event) => setEditForm({ ...editForm, password: event.target.value })}
+                  placeholder="Leave blank to keep the current password"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none" />
+                <p className="mt-1 text-xs text-slate-500">Existing passwords are never displayed. Enter at least 6 characters to set a new password.</p>
               </div>
             </div>
-
             <div className="p-5 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
-              <button
-                onClick={() => setEditingUser(null)}
-                className="px-4 py-2 text-slate-700 font-medium hover:bg-slate-200 rounded-lg transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={saveEdit}
-                disabled={editLoading}
-                className="px-4 py-2 bg-brand-600 text-white font-medium hover:bg-brand-700 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
-              >
-                {editLoading && <RefreshCw className="w-4 h-4 animate-spin" />}
-                Save Changes
+              <button type="button" disabled={editLoading} onClick={() => setEditingUser(null)} className="px-4 py-2 text-slate-700 font-medium hover:bg-slate-200 rounded-lg">Cancel</button>
+              <button type="submit" disabled={editLoading} className="px-4 py-2 bg-brand-600 text-white font-medium hover:bg-brand-700 rounded-lg flex items-center gap-2 disabled:opacity-50">
+                {editLoading && <RefreshCw className="w-4 h-4 animate-spin" />} {editLoading ? 'Saving…' : 'Save Changes'}
               </button>
             </div>
-          </div>
+          </form>
         </div>
       )}
 
